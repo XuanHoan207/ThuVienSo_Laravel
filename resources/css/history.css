@@ -1,0 +1,21 @@
+/* History Page Styles */
+.history-card {
+    border-radius: 12px;
+    transition: all 0.3s;
+}
+.history-card:hover {
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+.filter-tabs {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+.filter-tabs .btn {
+    border-radius: 20px;
+}
+.filter-tabs .btn.active {
+    background-color: var(--themeColor, #ED553B);
+    color: white;
+    border-color: var(--themeColor, #ED553B);
+}

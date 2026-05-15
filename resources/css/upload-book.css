@@ -1,0 +1,84 @@
+/* Upload Book Page Styles */
+.upload-area {
+    border: 2px dashed #ddd;
+    border-radius: 12px;
+    padding: 3rem;
+    text-align: center;
+    transition: all 0.3s;
+    cursor: pointer;
+}
+.upload-area:hover {
+    border-color: var(--themeColor, #ED553B);
+    background: rgba(237, 85, 59, 0.05);
+}
+.upload-area.dragover {
+    border-color: var(--themeColor, #ED553B);
+    background: rgba(237, 85, 59, 0.1);
+}
+.tag-input {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    min-height: 50px;
+}
+.tag-input .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.75rem;
+    background: var(--themeColor, #ED553B);
+    color: white;
+    border-radius: 20px;
+    font-size: 0.875rem;
+}
+.tag-input input {
+    border: none;
+    outline: none;
+    flex-grow: 1;
+    min-width: 100px;
+}
+.form-step {
+    display: none;
+}
+.form-step.active {
+    display: block;
+}
+.step-indicator {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2rem;
+}
+.step {
+    display: flex;
+    align-items: center;
+}
+.step-number {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #ddd;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+.step.active .step-number {
+    background: var(--themeColor, #ED553B);
+}
+.step.completed .step-number {
+    background: #28a745;
+}
+.step-label {
+    margin-left: 0.5rem;
+    font-weight: 500;
+}
+.step-line {
+    width: 50px;
+    height: 2px;
+    background: #ddd;
+    margin: 0 1rem;
+}

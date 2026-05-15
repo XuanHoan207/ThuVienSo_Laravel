@@ -1,0 +1,50 @@
+/* Login Page Styles */
+.auth-section {
+    min-height: 100vh;
+}
+
+/* Tabs: clearer active contrast and consistent theme color */
+.auth-section .nav-tabs .nav-link {
+    border-radius: 50px;
+    color: #333;
+    transition: 0.2s;
+    padding: .45rem 1.15rem;
+}
+
+.auth-section .nav-tabs .nav-link.active,
+.auth-section .nav-tabs .nav-link.show {
+    background-color: #ff7043;
+    color: #ffffff !important;
+    box-shadow: none;
+}
+
+/* Focus state uses theme color with subtle ring */
+.auth-section input:focus {
+    border-color: #ff7043 !important;
+    box-shadow: 0 0 0 0.12rem rgba(255,112,67,0.15);
+}
+
+/* Slightly smaller/livelier form controls for this auth form */
+.auth-form-wrapper .form-control-lg {
+    padding: .6rem .9rem;
+    font-size: .95rem;
+    border-radius: .6rem;
+}
+
+.auth-form-wrapper .btn.w-100 {
+    padding: .65rem .9rem;
+    border-radius: .6rem;
+    background-color: #ff7043;
+    border-color: #ff7043;
+}
+
+/* Ensure overlay text wraps nicely */
+.auth-image .overlay-text {
+    max-width: 80%;
+}
+
+@media (max-width: 992px) {
+    .auth-image {
+        display: none !important;
+    }
+}

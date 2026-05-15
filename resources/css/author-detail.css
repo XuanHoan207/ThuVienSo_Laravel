@@ -1,0 +1,45 @@
+/* Author Detail Page Styles */
+.author-cover {
+    background: linear-gradient(135deg, #ffcaa5 0%, #ffb088 100%);
+    height: 200px;
+}
+.author-profile {
+    margin-top: -100px;
+}
+.author-avatar-large {
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 6px solid white;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+.stat-card {
+    border-radius: 12px;
+    transition: transform 0.3s;
+}
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+.book-card-horizontal {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    border-radius: 12px;
+    transition: all 0.3s;
+}
+.book-card-horizontal:hover {
+    background: #f8f9fa;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+.book-card-horizontal img {
+    width: 100px;
+    height: 140px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+.tags-container .badge {
+    font-weight: normal;
+    padding: 6px 12px;
+    margin: 2px;
+}
