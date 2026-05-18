@@ -11,126 +11,160 @@
 @endpush
 
 @section('content')
+    @include('user.component.header')
 
-    <!-- Modern Login & Register Section -->
-    <section class="auth-section">
-        <div class="container-fluid">
-            <div class="row g-0">
-                <!-- Left Side Image -->
-                <div class="col-lg-6 d-none d-lg-block position-relative auth-image">
-                    <img src="https://images.unsplash.com/photo-1512820790803-83ca734da794?w=1000" alt="Books"
-                        class="img-fluid vh-100" style="object-fit: cover;">
-                    <div class="overlay-text position-absolute top-50 start-50 translate-middle text-center text-white px-3">
-                        <h2 class="fw-bold">Chào mừng đến với <span style="color:#ED553B;">Thư Viện Số</span></h2>
-                        <p>Khám phá, đọc và tải hàng ngàn cuốn sách hay từ khắp nơi trên thế giới</p>
-                        <a href="{{ url('/') }}" class="btn btn-light rounded-pill px-4 mt-3">
-                            <i class="bi bi-house me-2"></i>Trang chủ
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Right Side Form -->
-                <div class="col-lg-6 d-flex align-items-center justify-content-center"
-                    style="background: linear-gradient(135deg, #fffaf9 0%, #fefbf5 100%);">
-                    <div class="auth-form-wrapper w-100 p-5" style="max-width: 500px;">
-                        <!-- Back to Home -->
-                        <a href="{{ url('/') }}" class="text-decoration-none text-muted mb-4 d-inline-block">
-                            <i class="bi bi-arrow-left me-2"></i> Quay lại trang chủ
-                        </a>
-
-                        <!-- Tabs -->
-                        <ul class="nav nav-tabs justify-content-center mb-4 border-0" id="authTabs" role="tablist">
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link active fw-semibold" id="login-tab" data-bs-toggle="tab"
-                                    data-bs-target="#loginTab" type="button" role="tab">Đăng nhập</button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link fw-semibold" id="register-tab" data-bs-toggle="tab"
-                                    data-bs-target="#registerTab" type="button" role="tab">Đăng ký</button>
-                            </li>
-                        </ul>
-
-                        <!-- Tab Content -->
-                        <div class="tab-content" id="authTabsContent">
-                            <!-- Login Form -->
-                            <div class="tab-pane fade show active" id="loginTab" role="tabpanel">
-                                <h4 class="fw-bold mb-4 text-center" style="color:#ED553B;">Đăng nhập tài khoản</h4>
-                                <form id="loginForm">
-                                    <div class="mb-3">
-                                        <label class="form-label">Email</label>
-                                        <input type="email" class="form-control form-control-lg"
-                                            placeholder="Nhập email của bạn" required>
+    <!-- Login Section -->
+    <section class="py-5" style="background: linear-gradient(135deg, #fff4ec 0%, #fefbf5 100%); min-height: 70vh;">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="card border-0 shadow-lg rounded-3 overflow-hidden">
+                        <div class="row g-0">
+                            <!-- Left Side: Image -->
+                            <div class="col-lg-5 d-none d-lg-block">
+                                <div class="login-image h-100 d-flex flex-column justify-content-center align-items-center text-white p-4" style="background: linear-gradient(135deg, #ff7043 0%, #ff8d4c 100%);">
+                                    <img src="{{ asset('images/sample logo 1.png') }}" alt="Logo" class="mb-4" width="100">
+                                    <h3 class="fw-bold mb-3 text-center">Chào mừng đến với Thư Viện Số</h3>
+                                    <p class="text-center opacity-75 mb-4">Khám phá hàng ngàn cuốn sách hay từ mọi thể loại</p>
+                                    <div class="text-center opacity-75">
+                                        <p class="mb-2"><i class="bi bi-book me-2"></i>Sách điện tử chất lượng cao</p>
+                                        <p class="mb-2"><i class="bi bi-download me-2"></i>Tải về mọi lúc mọi nơi</p>
+                                        <p><i class="bi bi-star me-2"></i>Đánh giá & bình luận sách</p>
                                     </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Mật khẩu</label>
-                                        <input type="password" class="form-control form-control-lg"
-                                            placeholder="Nhập mật khẩu" required>
-                                    </div>
-                                    <div class="d-flex justify-content-between align-items-center mb-4">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" id="rememberMe">
-                                            <label class="form-check-label small" for="rememberMe">Ghi nhớ đăng nhập</label>
-                                        </div>
-                                        <a href="#" class="text-decoration-none small text-orange">Quên mật khẩu?</a>
-                                    </div>
-                                    <button type="submit" class="btn w-100 py-2 text-white fw-semibold"
-                                        style="background-color:#ED553B;">Đăng nhập</button>
-
-                                    <div class="text-center mt-4">
-                                        <p class="text-muted mb-3">Hoặc đăng nhập với</p>
-                                        <div class="d-flex justify-content-center gap-3">
-                                            <button type="button" class="btn btn-outline-secondary">
-                                                <i class="bi bi-google"></i> Google
-                                            </button>
-                                            <button type="button" class="btn btn-outline-secondary">
-                                                <i class="bi bi-facebook"></i> Facebook
-                                            </button>
-                                        </div>
-                                    </div>
-                                </form>
+                                </div>
                             </div>
 
-                            <!-- Register Form -->
-                            <div class="tab-pane fade" id="registerTab" role="tabpanel">
-                                <h4 class="fw-bold mb-4 text-center" style="color:#ED553B;">Tạo tài khoản mới</h4>
-                                <form id="registerForm">
-                                    <div class="mb-3">
-                                        <label class="form-label">Họ và tên</label>
-                                        <input type="text" class="form-control form-control-lg" placeholder="Họ và tên" required>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Email</label>
-                                        <input type="email" class="form-control form-control-lg" placeholder="Email" required>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Số điện thoại</label>
-                                        <input type="tel" class="form-control form-control-lg" placeholder="Số điện thoại">
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Mật khẩu</label>
-                                        <input type="password" class="form-control form-control-lg" placeholder="Tạo mật khẩu" required>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Xác nhận mật khẩu</label>
-                                        <input type="password" class="form-control form-control-lg" placeholder="Nhập lại mật khẩu" required>
-                                    </div>
-                                    <div class="form-check mb-4">
-                                        <input class="form-check-input" type="checkbox" id="agreeTerms" required>
-                                        <label class="form-check-label small" for="agreeTerms">
-                                            Tôi đồng ý với <a href="#" class="text-orange">Điều khoản sử dụng</a> và <a href="#" class="text-orange">Chính sách bảo mật</a>
-                                        </label>
-                                    </div>
-                                    <button type="submit" class="btn w-100 py-2 text-white fw-semibold"
-                                        style="background-color:#ED553B;">Đăng ký</button>
-                                </form>
-                            </div>
-                        </div>
+                            <!-- Right Side: Form -->
+                            <div class="col-lg-7">
+                                <div class="card-body p-5">
+                                    <!-- Tabs -->
+                                    <ul class="nav nav-pills mb-4 justify-content-center" id="authTabs" role="tablist">
+                                        <li class="nav-item" role="presentation">
+                                            <button class="nav-link active" id="login-tab" data-bs-toggle="pill" data-bs-target="#login" type="button">
+                                                <i class="bi bi-box-arrow-in-right me-2"></i>Đăng nhập
+                                            </button>
+                                        </li>
+                                        <li class="nav-item" role="presentation">
+                                            <button class="nav-link" id="register-tab" data-bs-toggle="pill" data-bs-target="#register" type="button">
+                                                <i class="bi bi-person-plus me-2"></i>Đăng ký
+                                            </button>
+                                        </li>
+                                    </ul>
 
-                        <!-- Back to home -->
-                        <div class="text-center mt-4">
-                            <a href="{{ url('/') }}" class="text-decoration-none text-muted">
-                                <i class="bi bi-house me-1"></i> Quay lại trang chủ
-                            </a>
+                                    <div class="tab-content" id="authTabsContent">
+                                        <!-- Login Form -->
+                                        <div class="tab-pane fade show active" id="login" role="tabpanel">
+                                            @if($errors->any())
+                                                <div class="alert alert-danger">
+                                                    <ul class="mb-0 ps-3">
+                                                        @foreach($errors->all() as $error)
+                                                            <li>{{ $error }}</li>
+                                                        @endforeach
+                                                    </ul>
+                                                </div>
+                                            @endif
+                                            
+                                            <form action="{{ route('login') }}" method="POST" class="login-form">
+                                                @csrf
+                                                <div class="mb-3">
+                                                    <label class="form-label">Email</label>
+                                                    <div class="input-group">
+                                                        <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                                        <input type="email" name="email" class="form-control" placeholder="Nhập email của bạn" value="{{ old('email') }}" required>
+                                                    </div>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Mật khẩu</label>
+                                                    <div class="input-group">
+                                                        <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                                        <input type="password" name="password" class="form-control" placeholder="Nhập mật khẩu" required>
+                                                    </div>
+                                                </div>
+                                                <div class="d-flex justify-content-between mb-4">
+                                                    <div class="form-check">
+                                                        <input type="checkbox" class="form-check-input" id="remember" name="remember">
+                                                        <label class="form-check-label" for="remember">Ghi nhớ đăng nhập</label>
+                                                    </div>
+                                                    <a href="{{ route('password.request') }}" class="text-orange text-decoration-none">Quên mật khẩu?</a>
+                                                </div>
+                                                <button type="submit" class="btn btn-primary w-100 py-2 rounded-pill">
+                                                    <i class="bi bi-box-arrow-in-right me-2"></i>Đăng nhập
+                                                </button>
+                                            </form>
+
+                                            <div class="text-center my-4">
+                                                <span class="text-muted">Hoặc đăng nhập với</span>
+                                            </div>
+
+                                            <div class="d-flex gap-3 mb-4">
+                                                <button class="btn btn-outline-secondary flex-grow-1 py-2" disabled>
+                                                    <i class="bi bi-google text-danger me-2"></i>Google
+                                                </button>
+                                                <button class="btn btn-outline-secondary flex-grow-1 py-2" disabled>
+                                                    <i class="bi bi-facebook text-primary me-2"></i>Facebook
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <!-- Register Form -->
+                                        <div class="tab-pane fade" id="register" role="tabpanel">
+                                            <form action="{{ route('register') }}" method="POST" class="register-form">
+                                                @csrf
+                                                <div class="mb-3">
+                                                    <label class="form-label">Họ tên</label>
+                                                    <div class="input-group">
+                                                        <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                                        <input type="text" name="name" class="form-control" placeholder="Nhập họ tên của bạn" value="{{ old('name') }}" required>
+                                                    </div>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Email</label>
+                                                    <div class="input-group">
+                                                        <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                                        <input type="email" name="email" class="form-control" placeholder="Nhập email của bạn" value="{{ old('email') }}" required>
+                                                    </div>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Mật khẩu</label>
+                                                    <div class="input-group">
+                                                        <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                                        <input type="password" name="password" class="form-control" placeholder="Nhập mật khẩu (tối thiểu 8 ký tự)" required minlength="8">
+                                                    </div>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Xác nhận mật khẩu</label>
+                                                    <div class="input-group">
+                                                        <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+                                                        <input type="password" name="password_confirmation" class="form-control" placeholder="Nhập lại mật khẩu" required>
+                                                    </div>
+                                                </div>
+                                                <div class="form-check mb-4">
+                                                    <input type="checkbox" class="form-check-input" id="agreeTerms" required>
+                                                    <label class="form-check-label" for="agreeTerms">
+                                                        Tôi đồng ý với <a href="#" class="text-orange">Điều khoản sử dụng</a> và <a href="#" class="text-orange">Chính sách bảo mật</a>
+                                                    </label>
+                                                </div>
+                                                <button type="submit" class="btn btn-primary w-100 py-2 rounded-pill">
+                                                    <i class="bi bi-person-plus me-2"></i>Đăng ký
+                                                </button>
+                                            </form>
+
+                                            <div class="text-center my-4">
+                                                <span class="text-muted">Hoặc đăng ký với</span>
+                                            </div>
+
+                                            <div class="d-flex gap-3">
+                                                <button class="btn btn-outline-secondary flex-grow-1 py-2" disabled>
+                                                    <i class="bi bi-google text-danger me-2"></i>Google
+                                                </button>
+                                                <button class="btn btn-outline-secondary flex-grow-1 py-2" disabled>
+                                                    <i class="bi bi-facebook text-primary me-2"></i>Facebook
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -138,4 +172,5 @@
         </div>
     </section>
 
+    @include('user.component.footer')
 @endsection

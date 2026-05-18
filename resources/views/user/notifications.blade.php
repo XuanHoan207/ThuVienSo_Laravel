@@ -34,54 +34,58 @@
                 <div class="col-lg-8">
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h2 class="fw-bold mb-0"><i class="bi bi-bell me-2 text-orange"></i>Thông Báo</h2>
-                        <button class="btn btn-outline-danger btn-sm" onclick="markAllRead()">
+                        @if($unreadCount > 0)
+                        <button class="btn btn-outline-danger btn-sm" onclick="markAllAsRead()">
                             <i class="bi bi-check-all me-1"></i> Đánh dấu tất cả đã đọc
                         </button>
+                        @endif
                     </div>
 
                     <!-- Filter Tabs -->
                     <div class="mb-4">
-                        <button class="btn filter-btn active" onclick="filterNotifications('all', this)">
+                        <a href="{{ route('notifications', ['type' => 'all']) }}" class="btn {{ !request('type') || request('type') == 'all' ? 'btn-primary' : 'btn-outline-primary' }} me-2">
                             <i class="bi bi-list me-1"></i> Tất cả
-                        </button>
-                        <button class="btn filter-btn" onclick="filterNotifications('book', this)">
+                        </a>
+                        <a href="{{ route('notifications', ['type' => 'book_approved']) }}" class="btn {{ request('type') == 'book_approved' ? 'btn-primary' : 'btn-outline-primary' }} me-2">
                             <i class="bi bi-book me-1"></i> Sách
-                        </button>
-                        <button class="btn filter-btn" onclick="filterNotifications('points', this)">
+                        </a>
+                        <a href="{{ route('notifications', ['type' => 'points_recharged']) }}" class="btn {{ request('type') == 'points_recharged' ? 'btn-primary' : 'btn-outline-primary' }} me-2">
                             <i class="bi bi-coin me-1"></i> Điểm
-                        </button>
-                        <button class="btn filter-btn" onclick="filterNotifications('system', this)">
+                        </a>
+                        <a href="{{ route('notifications', ['type' => 'system']) }}" class="btn {{ request('type') == 'system' ? 'btn-primary' : 'btn-outline-primary' }}">
                             <i class="bi bi-gear me-1"></i> Hệ thống
-                        </button>
+                        </a>
                     </div>
 
                     <!-- Notifications List -->
                     <div id="notificationsList">
-                        <!-- Notification 1: Unread -->
-                        <div class="card notification-card mb-3 unread" data-type="book">
+                        @forelse($notifications as $notification)
+                        <div class="card notification-card mb-3 {{ !$notification->is_read ? 'unread' : '' }}" data-id="{{ $notification->id }}">
                             <div class="card-body p-3">
                                 <div class="d-flex">
-                                    <div class="notification-icon bg-success text-white me-3">
-                                        <i class="bi bi-check-circle"></i>
+                                    <div class="notification-icon bg-{{ $notification->type === 'points_recharged' ? 'warning' : ($notification->type === 'book_approved' ? 'success' : 'primary') }} text-white me-3">
+                                        <i class="bi {{ $notification->icon ?? 'bi-bell' }}"></i>
                                     </div>
                                     <div class="flex-grow-1">
                                         <div class="d-flex justify-content-between align-items-start">
                                             <div>
-                                                <h6 class="mb-1">Sách của bạn đã được duyệt!</h6>
-                                                <p class="text-muted small mb-1">
-                                                    Sách <strong>"Lập trình Laravel"</strong> đã được duyệt and hiển thị công khai.
-                                                </p>
-                                                <small class="text-muted"><i class="bi bi-clock me-1"></i> 15 phút trước</small>
+                                                <h6 class="mb-1">{{ $notification->title }}</h6>
+                                                <p class="text-muted small mb-1">{{ $notification->content ?? '' }}</p>
+                                                <small class="text-muted"><i class="bi bi-clock me-1"></i>{{ $notification->created_at->diffForHumans() }}</small>
                                             </div>
                                             <div class="dropdown">
                                                 <button class="btn btn-sm" data-bs-toggle="dropdown">
                                                     <i class="bi bi-three-dots-vertical"></i>
                                                 </button>
                                                 <ul class="dropdown-menu dropdown-menu-end">
-                                                    <li><a class="dropdown-item" href="#"><i class="bi bi-eye me-2"></i>Xem sách</a></li>
-                                                    <li><a class="dropdown-item" href="#"><i class="bi bi-check2 me-2"></i>Đánh dấu đã đọc</a></li>
+                                                    @if($notification->link)
+                                                        <li><a class="dropdown-item" href="{{ $notification->link }}"><i class="bi bi-eye me-2"></i>Xem</a></li>
+                                                    @endif
+                                                    @if(!$notification->is_read)
+                                                        <li><a class="dropdown-item" href="#" onclick="markAsRead({{ $notification->id }})"><i class="bi bi-check2 me-2"></i>Đánh dấu đã đọc</a></li>
+                                                    @endif
                                                     <li><hr class="dropdown-divider"></li>
-                                                    <li><a class="dropdown-item text-danger" href="#"><i class="bi bi-trash me-2"></i>Xóa</a></li>
+                                                    <li><a class="dropdown-item text-danger" href="#" onclick="deleteNotification({{ $notification->id }})"><i class="bi bi-trash me-2"></i>Xóa</a></li>
                                                 </ul>
                                             </div>
                                         </div>
@@ -89,186 +93,18 @@
                                 </div>
                             </div>
                         </div>
-
-                        <!-- Notification 2: Unread -->
-                        <div class="card notification-card mb-3 unread" data-type="points">
-                            <div class="card-body p-3">
-                                <div class="d-flex">
-                                    <div class="notification-icon bg-warning text-dark me-3">
-                                        <i class="bi bi-wallet2"></i>
-                                    </div>
-                                    <div class="flex-grow-1">
-                                        <div class="d-flex justify-content-between align-items-start">
-                                            <div>
-                                                <h6 class="mb-1">Nạp điểm thành công!</h6>
-                                                <p class="text-muted small mb-1">
-                                                    Bạn đã nạp thành công <strong class="text-success">+550 điểm</strong> qua VNPay.
-                                                </p>
-                                                <small class="text-muted"><i class="bi bi-clock me-1"></i> 2 giờ trước</small>
-                                            </div>
-                                            <div class="dropdown">
-                                                <button class="btn btn-sm" data-bs-toggle="dropdown">
-                                                    <i class="bi bi-three-dots-vertical"></i>
-                                                </button>
-                                                <ul class="dropdown-menu dropdown-menu-end">
-                                                    <li><a class="dropdown-item" href="#"><i class="bi bi-eye me-2"></i>Chi tiết</a></li>
-                                                    <li><a class="dropdown-item" href="#"><i class="bi bi-check2 me-2"></i>Đánh dấu đã đọc</a></li>
-                                                    <li><hr class="dropdown-divider"></li>
-                                                    <li><a class="dropdown-item text-danger" href="#"><i class="bi bi-trash me-2"></i>Xóa</a></li>
-                                                </ul>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                        @empty
+                        <div class="text-center py-5">
+                            <i class="bi bi-bell text-muted" style="font-size: 4rem;"></i>
+                            <h4 class="text-muted mt-3">Không có thông báo nào</h4>
                         </div>
-
-                        <!-- Notification 3 -->
-                        <div class="card notification-card mb-3" data-type="book">
-                            <div class="card-body p-3">
-                                <div class="d-flex">
-                                    <div class="notification-icon bg-primary text-white me-3">
-                                        <i class="bi bi-cart-plus"></i>
-                                    </div>
-                                    <div class="flex-grow-1">
-                                        <div class="d-flex justify-content-between align-items-start">
-                                            <div>
-                                                <h6 class="mb-1">Có sách mới trong giỏ hàng!</h6>
-                                                <p class="text-muted small mb-1">
-                                                    Sách <strong>"Machine Learning Cơ Bản"</strong> đang chờ bạn thanh toán.
-                                                </p>
-                                                <small class="text-muted"><i class="bi bi-clock me-1"></i> 5 giờ trước</small>
-                                            </div>
-                                            <div class="dropdown">
-                                                <button class="btn btn-sm" data-bs-toggle="dropdown">
-                                                    <i class="bi bi-three-dots-vertical"></i>
-                                                </button>
-                                                <ul class="dropdown-menu dropdown-menu-end">
-                                                    <li><a class="dropdown-item" href="{{ url('/cart') }}"><i class="bi bi-cart me-2"></i>Xem giỏ hàng</a></li>
-                                                    <li><a class="dropdown-item" href="#"><i class="bi bi-check2 me-2"></i>Đánh dấu đã đọc</a></li>
-                                                    <li><hr class="dropdown-divider"></li>
-                                                    <li><a class="dropdown-item text-danger" href="#"><i class="bi bi-trash me-2"></i>Xóa</a></li>
-                                                </ul>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Notification 4 -->
-                        <div class="card notification-card mb-3" data-type="book">
-                            <div class="card-body p-3">
-                                <div class="d-flex">
-                                    <div class="notification-icon bg-info text-white me-3">
-                                        <i class="bi bi-star"></i>
-                                    </div>
-                                    <div class="flex-grow-1">
-                                        <div class="d-flex justify-content-between align-items-start">
-                                            <div>
-                                                <h6 class="mb-1">Đánh giá của bạn đã được duyệt!</h6>
-                                                <p class="text-muted small mb-1">
-                                                    Cảm ơn bạn đã đánh giá <strong>"Mắt Biếc"</strong> 5 sao.
-                                                </p>
-                                                <small class="text-muted"><i class="bi bi-clock me-1"></i> Hôm qua</small>
-                                            </div>
-                                            <div class="dropdown">
-                                                <button class="btn btn-sm" data-bs-toggle="dropdown">
-                                                    <i class="bi bi-three-dots-vertical"></i>
-                                                </button>
-                                                <ul class="dropdown-menu dropdown-menu-end">
-                                                    <li><a class="dropdown-item" href="#"><i class="bi bi-eye me-2"></i>Xem đánh giá</a></li>
-                                                    <li><a class="dropdown-item" href="#"><i class="bi bi-check2 me-2"></i>Đánh dấu đã đọc</a></li>
-                                                    <li><hr class="dropdown-divider"></li>
-                                                    <li><a class="dropdown-item text-danger" href="#"><i class="bi bi-trash me-2"></i>Xóa</a></li>
-                                                </ul>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Notification 5 -->
-                        <div class="card notification-card mb-3" data-type="system">
-                            <div class="card-body p-3">
-                                <div class="d-flex">
-                                    <div class="notification-icon bg-secondary text-white me-3">
-                                        <i class="bi bi-gift"></i>
-                                    </div>
-                                    <div class="flex-grow-1">
-                                        <div class="d-flex justify-content-between align-items-start">
-                                            <div>
-                                                <h6 class="mb-1">Nhận thưởng đăng nhập!</h6>
-                                                <p class="text-muted small mb-1">
-                                                    Chúc mừng bạn! Hôm nay bạn nhận được <strong class="text-success">+10 điểm</strong> thưởng đăng nhập.
-                                                </p>
-                                                <small class="text-muted"><i class="bi bi-clock me-1"></i> 2 ngày trước</small>
-                                            </div>
-                                            <div class="dropdown">
-                                                <button class="btn btn-sm" data-bs-toggle="dropdown">
-                                                    <i class="bi bi-three-dots-vertical"></i>
-                                                </button>
-                                                <ul class="dropdown-menu dropdown-menu-end">
-                                                    <li><a class="dropdown-item" href="#"><i class="bi bi-check2 me-2"></i>Đánh dấu đã đọc</a></li>
-                                                    <li><hr class="dropdown-divider"></li>
-                                                    <li><a class="dropdown-item text-danger" href="#"><i class="bi bi-trash me-2"></i>Xóa</a></li>
-                                                </ul>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Notification 6 -->
-                        <div class="card notification-card mb-3" data-type="book">
-                            <div class="card-body p-3">
-                                <div class="d-flex">
-                                    <div class="notification-icon bg-danger text-white me-3">
-                                        <i class="bi bi-exclamation-triangle"></i>
-                                    </div>
-                                    <div class="flex-grow-1">
-                                        <div class="d-flex justify-content-between align-items-start">
-                                            <div>
-                                                <h6 class="mb-1">Sách bị từ chối duyệt</h6>
-                                                <p class="text-muted small mb-1">
-                                                    Sách <strong>"Python Cơ Bản"</strong> không đạt yêu cầu. Vui lòng chỉnh sửa and gửi lại.
-                                                </p>
-                                                <small class="text-muted"><i class="bi bi-clock me-1"></i> 3 ngày trước</small>
-                                            </div>
-                                            <div class="dropdown">
-                                                <button class="btn btn-sm" data-bs-toggle="dropdown">
-                                                    <i class="bi bi-three-dots-vertical"></i>
-                                                </button>
-                                                <ul class="dropdown-menu dropdown-menu-end">
-                                                    <li><a class="dropdown-item" href="#"><i class="bi bi-pencil me-2"></i>Chỉnh sửa</a></li>
-                                                    <li><a class="dropdown-item" href="#"><i class="bi bi-check2 me-2"></i>Đánh dấu đã đọc</a></li>
-                                                    <li><hr class="dropdown-divider"></li>
-                                                    <li><a class="dropdown-item text-danger" href="#"><i class="bi bi-trash me-2"></i>Xóa</a></li>
-                                                </ul>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        @endforelse
                     </div>
 
                     <!-- Pagination -->
-                    <nav class="mt-4">
-                        <ul class="pagination justify-content-center">
-                            <li class="page-item disabled">
-                                <a class="page-link" href="#" tabindex="-1">Trước</a>
-                            </li>
-                            <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                            <li class="page-item"><a class="page-link" href="#">2</a></li>
-                            <li class="page-item"><a class="page-link" href="#">3</a></li>
-                            <li class="page-item">
-                                <a class="page-link" href="#">Sau</a>
-                            </li>
-                        </ul>
-                    </nav>
+                    <div class="d-flex justify-content-center mt-4">
+                        {{ $notifications->withQueryString()->links() }}
+                    </div>
                 </div>
 
                 <!-- Sidebar -->
@@ -277,24 +113,24 @@
                     <div class="card border-0 shadow-sm mb-4">
                         <div class="card-body">
                             <div class="d-flex align-items-center mb-3">
-                                <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop" 
+                                <img src="{{ Auth::user()->avatar ? asset('storage/' . Auth::user()->avatar) : 'https://via.placeholder.com/60' }}" 
                                      alt="Avatar" class="rounded-circle me-3" style="width: 60px; height: 60px; object-fit: cover;">
                                 <div>
-                                    <h5 class="mb-0">Nguyễn Văn User</h5>
-                                    <small class="text-muted">user@email.com</small>
+                                    <h5 class="mb-0">{{ Auth::user()->name }}</h5>
+                                    <small class="text-muted">{{ Auth::user()->email }}</small>
                                 </div>
                             </div>
                             <div class="d-flex justify-content-around text-center">
                                 <div>
-                                    <h5 class="mb-0 text-orange">1,250</h5>
+                                    <h5 class="mb-0 text-orange">{{ number_format(Auth::user()->points) }}</h5>
                                     <small class="text-muted">Điểm</small>
                                 </div>
                                 <div>
-                                    <h5 class="mb-0">15</h5>
+                                    <h5 class="mb-0">{{ Auth::user()->purchases()->count() }}</h5>
                                     <small class="text-muted">Sách đã mua</small>
                                 </div>
                                 <div>
-                                    <h5 class="mb-0">8</h5>
+                                    <h5 class="mb-0">{{ Auth::user()->ratings()->count() }}</h5>
                                     <small class="text-muted">Đánh giá</small>
                                 </div>
                             </div>
@@ -326,45 +162,61 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- Settings -->
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-header bg-white">
-                            <h5 class="fw-bold mb-0"><i class="bi bi-gear me-2 text-orange"></i>Cài đặt thông báo</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="form-check form-switch mb-3">
-                                <input class="form-check-input" type="checkbox" id="notifyBook" checked>
-                                <label class="form-check-label" for="notifyBook">
-                                    Thông báo sách mới
-                                </label>
-                            </div>
-                            <div class="form-check form-switch mb-3">
-                                <input class="form-check-input" type="checkbox" id="notifyPoints" checked>
-                                <label class="form-check-label" for="notifyPoints">
-                                    Thông báo điểm
-                                </label>
-                            </div>
-                            <div class="form-check form-switch mb-3">
-                                <input class="form-check-input" type="checkbox" id="notifySystem" checked>
-                                <label class="form-check-label" for="notifySystem">
-                                    Thông báo hệ thống
-                                </label>
-                            </div>
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" id="notifyEmail">
-                                <label class="form-check-label" for="notifyEmail">
-                                    Nhận qua email
-                                </label>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Footer -->
     @include('user.component.footer')
 @endsection
 
+@push('scripts')
+<script>
+function markAsRead(id) {
+    fetch(`/notifications/${id}/read`, {
+        method: 'PATCH',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        }
+    });
+}
+
+function markAllAsRead() {
+    fetch('/notifications/mark-all-read', {
+        method: 'PATCH',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        }
+    });
+}
+
+function deleteNotification(id) {
+    if (confirm('Bạn có chắc muốn xóa thông báo này?')) {
+        fetch(`/notifications/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            }
+        });
+    }
+}
+</script>
+@endpush

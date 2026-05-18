@@ -1,0 +1,168 @@
+# THƯ VIỆN SỐ - DIGITAL LIBRARY - PLAN CHỨC NĂNG
+
+## 1. TRANG CHỦ (index.html) - CÓ SẴN, CẦN NÂNG CẤP
+- [x] Slider/Banner quảng cáo
+- [x] Danh mục sách (Categories)
+- [x] Sách mới phát hành (New Release Books)
+- [x] Sách nổi bật (Featured Books)
+- [x] Ưu đãi (Offer Section)
+- [x] Newsletter
+- [ ] Thêm: Hiển thị Tags trending
+- [ ] Thêm: Sách được tải nhiều nhất
+- [ ] Thêm: Sách được đánh giá cao
+
+## 2. TRANG SÁCH (books.html) - CẦN NÂNG CẤP
+- [ ] Filter theo Category
+- [ ] Filter theo Tags (mới)
+- [ ] Filter theo Author (nhiều tác giả - many-to-many)
+- [ ] Filter theo Price
+- [ ] Filter theo Rating
+- [ ] Sort (mới nhất, giá, rating, lượt tải)
+- [ ] Search với fulltext (nâng cấp)
+- [ ] Phân trang
+- [ ] Quick view
+
+## 3. TRANG CHI TIẾT SÁCH (books-detail.html) - CẦN NÂNG CẤP
+- [x] Thông tin sách cơ bản
+- [x] Mô tả
+- [ ] Nhiều tác giả (book_author table)
+- [ ] Tags hiển thị
+- [ ] ISBN
+- [ ] Đánh giá (ratings 1-5 sao, unique user_id + book_id)
+- [ ] Bình luận (comments)
+- [ ] Sách liên quan (cùng category/tags)
+- [ ] Nút tải/xem (kiểm tra điểm)
+
+## 4. TRANG TÁC GIẢ (authors.html) - CẦN TẠO MỚI
+- [ ] Danh sách tất cả tác giả
+- [ ] Avatar, tên, bio ngắn
+- [ ] Số sách đã viết
+- [ ] Search tác giả
+- [ ] Filter theo alphabet
+
+## 5. TRANG CHI TIẾT TÁC GIẢ (author-detail.html) - CẦN TẠO MỚI
+- [ ] Thông tin đầy đủ tác giả
+- [ ] Ảnh, bio dài
+- [ ] Danh sách sách của tác giả (nhiều sách)
+- [ ] Đánh giá trung bình
+
+## 6. TRANG TẢI LÊN SÁCH (upload-book.html) - CẦN TẠO MỚI
+- [ ] Form upload: title, description, category, tags (multi-select)
+- [ ] Upload file sách (PDF, EPUB)
+- [ ] Upload thumbnail
+- [ ] Chọn/Thêm tác giả (nhiều tác giả)
+- [ ] Nhập giá (points)
+- [ ] Preview trước khi submit
+- [ ] Status: pending (chờ duyệt)
+
+## 7. TRANG NẠP ĐIỂM (recharge.html) - CẦN TẠO MỚI
+- [ ] Chọn gói nạp điểm (50k, 100k, 200k, 500k)
+- [ ] Tích hợp thanh toán (giả lập)
+- [ ] Lịch sử giao dịch nạp điểm
+- [ ] Thông báo nạp thành công
+
+## 8. TRANG THÔNG BÁO (notifications.html) - CẦN TẠO MỚI
+- [ ] Danh sách thông báo (sách được duyệt, nạp điểm...)
+- [ ] Đánh dấu đã đọc/chưa đọc
+- [ ] Filter theo loại
+- [ ] Xóa thông báo
+
+## 9. TRANG TÀI KHOẢN (my-account.html) - CẦN NÂNG CẤP
+- [x] Thông tin cá nhân
+- [ ] Sửa thông tin
+- [ ] Đổi mật khẩu
+- [ ] Điểm tài khoản hiện tại
+- [ ] Lịch sử tải/xem sách
+- [ ] Sách yêu thích
+- [ ] Sách đã mua
+- [ ] Đăng xuất
+
+## 10. TRANG ĐĂNG NHẬP/ĐĂNG KÝ (login.html) - CẦN NÂNG CẤP
+- [x] Form đăng nhập
+- [x] Form đăng ký
+- [ ] Quên mật khẩu
+- [ ] Google/Facebook login (tùy chọn)
+
+## 11. TRANG GIỎ HÀNG (cart.html) - CẦN NÂNG CẤP
+- [x] Danh sách sách đã thêm
+- [ ] Tính tổng điểm
+- [ ] Áp dụng mã giảm giá
+- [ ] Thanh toán bằng điểm
+
+## 12. TRANG YÊU THÍCH (wishlist.html) - CẦN NÂNG CẤP
+- [x] Danh sách sách yêu thích
+- [ ] Thêm vào giỏ hàng
+- [ ] Xóa khỏi wishlist
+
+## 13. TRANG LIÊN HỆ (contact.html) - CÓ SẴN
+- [x] Form liên hệ
+- [ ] Bản đồ
+- [ ] Thông tin liên hệ
+
+## 14. TRANG VỀ CHÚNG TÔI (about.html) - CÓ SẴN
+- [x] Giới thiệu
+
+## 15. TRANG QUẢN TRỊ (admin/) - CẦN TẠO MỚI
+- [ ] Dashboard thống kê
+- [ ] Quản lý sách (approve/reject)
+- [ ] Quản lý users
+- [ ] Quản lý tác giả
+- [ ] Quản lý danh mục
+- [ ] Quản lý tags
+- [ ] Quản lý báo cáo vi phạm (reports)
+- [ ] Quản lý slider
+- [ ] Quản lý contact messages
+- [ ] Quản lý notifications
+- [ ] Thống kê báo cáo
+
+## 16. CHỨC NĂNG GLOBAL
+- [ ] Search toàn site (fulltext)
+- [ ] Đăng nhập/Đăng xuất
+- [ ] Giỏ hàng (cart management)
+- [ ] Wishlist (favorites)
+- [ ] Points system (nạp, tiêu, thưởng)
+- [ ] Download tracking
+- [ ] View tracking
+- [ ] Soft delete (deleted_at)
+- [ ] Report books (báo cáo vi phạm)
+- [ ] Dark mode toggle
+
+## 17. DATABASE UPDATES (theo Yêu cầu thêm cho database)
+- [ ] Tách authors và books thành many-to-many (book_author)
+- [ ] Thêm bảng tags
+- [ ] Thêm bảng book_tag (pivot)
+- [ ] Thêm FULLTEXT index cho search
+- [ ] Thêm deleted_at (soft delete) cho các bảng
+- [ ] Giới hạn rating 1-5 stars
+- [ ] UNIQUE cho ratings (user_id, book_id)
+- [ ] ENUM cho book status
+- [ ] Thêm bảng notifications
+- [ ] Thêm bảng reports
+- [ ] Thêm bảng daily_statistics
+- [ ] Đổi tên book_user thành purchases
+- [ ] Thêm ISBN cho books
+- [ ] Thêm file_size, file_type
+- [ ] Thêm last_login_at, last_login_ip cho users
+- [ ] Thêm index cho status, view_count, download_count
+
+## 18. PRIORITIES (ƯU TIÊN THỰC HIỆN)
+
+### PHASE 1: Cơ bản (MVP)
+1. Database updates (SQL)
+2. Trang Authors (authors.html)
+3. Trang Author Detail (author-detail.html)
+4. Trang Upload Book (upload-book.html)
+5. Trang Recharge Points (recharge.html)
+6. Trang Notifications (notifications.html)
+7. Trang User Dashboard/Download History
+
+### PHASE 2: Nâng cao
+8. Cập nhật books.html với filter tags/author
+9. Cập nhật books-detail.html với đánh giá
+10. Admin Dashboard cơ bản
+
+### PHASE 3: Hoàn thiện
+11. Search nâng cao
+12. Report system
+13. Dark mode
+14. SEO optimization

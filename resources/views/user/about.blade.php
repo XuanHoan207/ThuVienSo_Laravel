@@ -2,132 +2,169 @@
 
 @section('title', 'Giới Thiệu - Thư Viện Số')
 
+@push('styles')
+    @vite('resources/css/about.css')
+@endpush
+
+@push('scripts')
+    @vite('resources/js/about.js')
+@endpush
+
 @section('content')
     @include('user.component.header')
 
-    <!-- Page Header -->
-    <div class="bg-light py-3">
+    <!-- Hero Section -->
+    <section class="hero-section text-white text-center">
         <div class="container">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb mb-0">
-                    <li class="breadcrumb-item"><a href="{{ url('/') }}">Trang chủ</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">Giới thiệu</li>
-                </ol>
-            </nav>
-        </div>
-    </div>
-
-    <!-- About Us Section -->
-    <section class="about-section py-5" style="background-color: #fff;">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-lg-6 mb-4 mb-lg-0">
-                    <div class="about-image-wrapper position-relative">
-                        <img src="https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=800"
-                            alt="Thư Viện Số" class="img-fluid rounded-4 shadow-lg w-100">
-                    </div>
-                </div>
-                <div class="col-lg-6 ps-lg-5">
-                    <h6 class="text-uppercase text-orange fw-semibold mb-2">Về Chúng Tôi</h6>
-                    <h2 class="fw-bold mb-4">Thư Viện Số - Nền Tảng Đọc Sách Trực Tuyến Hàng Đầu</h2>
-                    <p class="text-muted mb-4">
-                        <strong>Thư Viện Số</strong> là nền tảng thư viện sách trực tuyến hàng đầu Việt Nam,
-                        được thành lập với sứ mệnh mang đến cho bạn trải nghiệm đọc sách tuyệt vời nhất.
-                    </p>
-                    <p class="text-muted mb-4">
-                        Với hàng ngàn đầu sách từ nhiều thể loại khác nhau như văn học, khoa học, công nghệ,
-                        kinh tế, và kỹ năng sống - chúng tôi cam kết mang đến cho bạn những nội dung chất lượng
-                        nhất từ những tác giả uy tín.
-                    </p>
-                    <div class="row g-4 mb-4">
-                        <div class="col-6">
-                            <div class="d-flex align-items-center">
-                                <i class="bi bi-book fs-1 text-orange me-3"></i>
-                                <div>
-                                    <h3 class="mb-0 fw-bold">10k+</h3>
-                                    <small class="text-muted">Sách điện tử</small>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="d-flex align-items-center">
-                                <i class="bi bi-people fs-1 text-orange me-3"></i>
-                                <div>
-                                    <h3 class="mb-0 fw-bold">50k+</h3>
-                                    <small class="text-muted">Người dùng</small>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="d-flex align-items-center">
-                                <i class="bi bi-star fs-1 text-orange me-3"></i>
-                                <div>
-                                    <h3 class="mb-0 fw-bold">1k+</h3>
-                                    <small class="text-muted">Tác giả</small>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="d-flex align-items-center">
-                                <i class="bi bi-download fs-1 text-orange me-3"></i>
-                                <div>
-                                    <h3 class="mb-0 fw-bold">100k+</h3>
-                                    <small class="text-muted">Lượt tải</small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="d-flex flex-wrap gap-3">
-                        <a href="{{ url('/books') }}" class="btn btn-primary rounded-pill px-4 py-2">
-                            <i class="bi bi-book me-2"></i>Khám phá sách
-                        </a>
-                        <a href="{{ url('/contact') }}" class="btn btn-outline-primary rounded-pill px-4 py-2">
-                            <i class="bi bi-envelope me-2"></i>Liên hệ
-                        </a>
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <h1 class="display-4 fw-bold mb-4">Chào mừng đến với Thư Viện Số</h1>
+                    <p class="lead mb-4">Nền tảng thư viện sách trực tuyến hàng đầu Việt Nam, nơi bạn có thể khám phá, đọc và tải hàng ngàn cuốn sách hay từ mọi thể loại.</p>
+                    <div class="d-flex gap-3 justify-content-center">
+                        <a href="{{ url('/books') }}" class="btn btn-light btn-lg rounded-pill px-4">Khám phá sách</a>
+                        <a href="{{ url('/register') }}" class="btn btn-outline-light btn-lg rounded-pill px-4">Đăng ký miễn phí</a>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Why Choose Us -->
+    <!-- Stats Section -->
+    <section class="stats-section py-5">
+        <div class="container">
+            <div class="row g-4 text-center">
+                <div class="col-md-3 col-6">
+                    <div class="stat-card">
+                        <i class="bi bi-book text-orange mb-3" style="font-size: 3rem;"></i>
+                        <h2 class="fw-bold mb-1">10,000+</h2>
+                        <p class="text-muted mb-0">Sách điện tử</p>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="stat-card">
+                        <i class="bi bi-people text-orange mb-3" style="font-size: 3rem;"></i>
+                        <h2 class="fw-bold mb-1">50,000+</h2>
+                        <p class="text-muted mb-0">Độc giả</p>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="stat-card">
+                        <i class="bi bi-download text-orange mb-3" style="font-size: 3rem;"></i>
+                        <h2 class="fw-bold mb-1">100,000+</h2>
+                        <p class="text-muted mb-0">Lượt tải</p>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="stat-card">
+                        <i class="bi bi-star text-orange mb-3" style="font-size: 3rem;"></i>
+                        <h2 class="fw-bold mb-1">4.8/5</h2>
+                        <p class="text-muted mb-0">Đánh giá TB</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Content -->
     <section class="py-5 bg-light">
         <div class="container">
+            <div class="row align-items-center g-5">
+                <div class="col-lg-6">
+                    <h2 class="fw-bold mb-4">Về Thư Viện Số</h2>
+                    <p class="text-muted mb-4">
+                        Thư Viện Số được thành lập với sứ mệnh mang đến cho độc giả Việt Nam một nền tảng đọc sách tiện lợi, 
+                        chất lượng và dễ tiếp cận. Chúng tôi tin rằng kiến thức là vô giá và mọi người đều xứng đáng được tiếp cận 
+                        với những cuốn sách hay.
+                    </p>
+                    <p class="text-muted mb-4">
+                        Với đội ngũ chuyên gia và đối tác uy tín, Thư Viện Số cam kết cung cấp:
+                    </p>
+                    <ul class="list-unstyled mb-4">
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Kho sách đa dạng từ nhiều thể loại</li>
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Nội dung chất lượng cao, được kiểm duyệt kỹ lưỡng</li>
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Giá cả hợp lý với nhiều ưu đãi hấp dẫn</li>
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Trải nghiệm đọc mượt mà trên mọi thiết bị</li>
+                        <li><i class="bi bi-check-circle-fill text-success me-2"></i>Hỗ trợ khách hàng 24/7</li>
+                    </ul>
+                </div>
+                <div class="col-lg-6 text-center">
+                    <img src="https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=800" alt="Library" class="img-fluid rounded shadow">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="py-5">
+        <div class="container">
             <div class="text-center mb-5">
-                <h6 class="text-uppercase text-orange fw-semibold mb-2">Tại sao chọn chúng tôi</h6>
-                <h2 class="fw-bold">Những Điều Khiến Chúng Tôi Khác Biệt</h2>
+                <h2 class="fw-bold mb-2">Tại sao chọn Thư Viện Số?</h2>
+                <p class="text-muted">Chúng tôi mang đến trải nghiệm đọc sách tốt nhất</p>
             </div>
             <div class="row g-4">
                 <div class="col-md-4">
                     <div class="card border-0 shadow-sm h-100 text-center p-4">
                         <div class="card-body">
-                            <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px;">
-                                <i class="bi bi-shield-check text-primary fs-2"></i>
+                            <div class="feature-icon bg-orange text-white rounded-circle mx-auto mb-4 d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                                <i class="bi bi-shield-check" style="font-size: 2rem;"></i>
                             </div>
-                            <h5 class="fw-bold mb-3">Nội dung chất lượng</h5>
-                            <p class="text-muted mb-0">Tất cả sách đều được kiểm duyệt kỹ lưỡng, đảm bảo chất lượng nội dung cho người đọc.</p>
+                            <h5 class="fw-bold mb-3">Bản quyền chính hãng</h5>
+                            <p class="text-muted mb-0">Tất cả sách đều có bản quyền hợp pháp, đảm bảo quyền lợi cho tác giả và nhà xuất bản.</p>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="card border-0 shadow-sm h-100 text-center p-4">
                         <div class="card-body">
-                            <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px;">
-                                <i class="bi bi-lightning-charge text-success fs-2"></i>
+                            <div class="feature-icon bg-orange text-white rounded-circle mx-auto mb-4 d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                                <i class="bi bi-lightning-charge" style="font-size: 2rem;"></i>
                             </div>
-                            <h5 class="fw-bold mb-3">Đọc mọi lúc mọi nơi</h5>
-                            <p class="text-muted mb-0">Hỗ trợ đa nền tảng: máy tính, điện thoại, tablet. Đọc sách mọi lúc mọi nơi.</p>
+                            <h5 class="fw-bold mb-3">Tải nhanh chóng</h5>
+                            <p class="text-muted mb-0">Máy chủ mạnh mẽ, tốc độ tải nhanh, hỗ trợ nhiều định dạng: PDF, EPUB, MOBI.</p>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="card border-0 shadow-sm h-100 text-center p-4">
                         <div class="card-body">
-                            <div class="bg-warning bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px;">
-                                <i class="bi bi-wallet2 text-warning fs-2"></i>
+                            <div class="feature-icon bg-orange text-white rounded-circle mx-auto mb-4 d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                                <i class="bi bi-phone" style="font-size: 2rem;"></i>
+                            </div>
+                            <h5 class="fw-bold mb-3">Đọc mọi nơi</h5>
+                            <p class="text-muted mb-0">Đọc trên mọi thiết bị: máy tính, điện thoại, tablet. Đồng bộ tiến độ đọc.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm h-100 text-center p-4">
+                        <div class="card-body">
+                            <div class="feature-icon bg-orange text-white rounded-circle mx-auto mb-4 d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                                <i class="bi bi-tags" style="font-size: 2rem;"></i>
                             </div>
                             <h5 class="fw-bold mb-3">Giá cả hợp lý</h5>
-                            <p class="text-muted mb-0">Hệ thống điểm linh hoạt, nhiều ưu đãi hấp dẫn. Đọc sách với chi phí tối ưu nhất.</p>
+                            <p class="text-muted mb-0">Nhiều gói giá linh hoạt, ưu đãi hấp dẫn cho thành viên VIP.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm h-100 text-center p-4">
+                        <div class="card-body">
+                            <div class="feature-icon bg-orange text-white rounded-circle mx-auto mb-4 d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                                <i class="bi bi-chat-dots" style="font-size: 2rem;"></i>
+                            </div>
+                            <h5 class="fw-bold mb-3">Cộng đồng sôi động</h5>
+                            <p class="text-muted mb-0">Đánh giá, bình luận, chia sẻ. Kết nối với những người yêu sách.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm h-100 text-center p-4">
+                        <div class="card-body">
+                            <div class="feature-icon bg-orange text-white rounded-circle mx-auto mb-4 d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                                <i class="bi bi-headset" style="font-size: 2rem;"></i>
+                            </div>
+                            <h5 class="fw-bold mb-3">Hỗ trợ 24/7</h5>
+                            <p class="text-muted mb-0">Đội ngũ hỗ trợ luôn sẵn sàng giải đáp mọi thắc mắc của bạn.</p>
                         </div>
                     </div>
                 </div>
@@ -135,13 +172,71 @@
         </div>
     </section>
 
-    <!-- Newsletter Section -->
-    <section class="newsletter-section">
-        <h3>Đăng Ký Nhận Tin</h3>
-        <p>Đăng ký để nhận thông tin về sách mới và ưu đãi hấp dẫn.</p>
-        <div class="newsletter-input">
-            <input type="email" placeholder="Nhập email của bạn">
-            <button>ĐĂNG KÝ</button>
+    <!-- Team Section -->
+    <section class="py-5 bg-light">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="fw-bold mb-2">Đội ngũ của chúng tôi</h2>
+                <p class="text-muted">Những người tận tâm xây dựng Thư Viện Số</p>
+            </div>
+            <div class="row g-4 justify-content-center">
+                <div class="col-lg-3 col-md-6 text-center">
+                    <div class="team-card">
+                        <img src="https://via.placeholder.com/200" alt="Team Member" class="rounded-circle mb-3" width="150" height="150" style="object-fit: cover;">
+                        <h5 class="fw-bold mb-1">Nguyễn Văn A</h5>
+                        <p class="text-muted mb-2">Founder & CEO</p>
+                        <div class="d-flex justify-content-center gap-2">
+                            <a href="#" class="text-muted"><i class="bi bi-linkedin"></i></a>
+                            <a href="#" class="text-muted"><i class="bi bi-envelope"></i></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 text-center">
+                    <div class="team-card">
+                        <img src="https://via.placeholder.com/200" alt="Team Member" class="rounded-circle mb-3" width="150" height="150" style="object-fit: cover;">
+                        <h5 class="fw-bold mb-1">Trần Thị B</h5>
+                        <p class="text-muted mb-2">CTO</p>
+                        <div class="d-flex justify-content-center gap-2">
+                            <a href="#" class="text-muted"><i class="bi bi-linkedin"></i></a>
+                            <a href="#" class="text-muted"><i class="bi bi-envelope"></i></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 text-center">
+                    <div class="team-card">
+                        <img src="https://via.placeholder.com/200" alt="Team Member" class="rounded-circle mb-3" width="150" height="150" style="object-fit: cover;">
+                        <h5 class="fw-bold mb-1">Lê Văn C</h5>
+                        <p class="text-muted mb-2">Product Manager</p>
+                        <div class="d-flex justify-content-center gap-2">
+                            <a href="#" class="text-muted"><i class="bi bi-linkedin"></i></a>
+                            <a href="#" class="text-muted"><i class="bi bi-envelope"></i></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 text-center">
+                    <div class="team-card">
+                        <img src="https://via.placeholder.com/200" alt="Team Member" class="rounded-circle mb-3" width="150" height="150" style="object-fit: cover;">
+                        <h5 class="fw-bold mb-1">Phạm Thị D</h5>
+                        <p class="text-muted mb-2">Head of Content</p>
+                        <div class="d-flex justify-content-center gap-2">
+                            <a href="#" class="text-muted"><i class="bi bi-linkedin"></i></a>
+                            <a href="#" class="text-muted"><i class="bi bi-envelope"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-5 text-white text-center" style="background: linear-gradient(135deg, #ff7043 0%, #ff8d4c 100%);">
+        <div class="container">
+            <h2 class="fw-bold mb-3">Sẵn sàng bắt đầu cuộc hành trình đọc sách?</h2>
+            <p class="mb-4 opacity-75">Đăng ký ngay hôm nay và nhận ưu đãi 50% cho lần mua đầu tiên!</p>
+            <div class="d-flex gap-3 justify-content-center">
+                <a href="{{ url('/register') }}" class="btn btn-light btn-lg rounded-pill px-5">Đăng ký miễn phí</a>
+                <a href="{{ url('/contact') }}" class="btn btn-outline-light btn-lg rounded-pill px-5">Liên hệ</a>
+            </div>
         </div>
     </section>
 

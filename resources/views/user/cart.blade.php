@@ -24,68 +24,54 @@
     <!-- Cart Section -->
     <section class="container py-5">
         <h2 class="fw-bold mb-4"><i class="bi bi-cart4 me-2 text-orange"></i>Giỏ Hàng Của Tôi</h2>
+        
+        @if(session('success'))
+            <div class="alert alert-success">{{ session('success') }}</div>
+        @endif
+        @if(session('error'))
+            <div class="alert alert-danger">{{ session('error') }}</div>
+        @endif
+
+        @if(count($cartItems) > 0)
         <div class="row g-4">
             <div class="col-lg-8">
-                <!-- Cart Item 1 -->
+                @foreach($cartItems as $item)
                 <div class="card border-0 shadow-sm mb-3 p-3 d-flex flex-row align-items-center">
-                    <img src="https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400" class="rounded me-3" width="80" alt="Lập trình Laravel">
+                    <a href="{{ route('books.show', $item['book']->slug) }}">
+                        @if($item['book']->thumbnail)
+                            <img src="{{ asset('storage/' . $item['book']->thumbnail) }}" class="rounded me-3" width="80" alt="{{ $item['book']->title }}" style="height: 100px; object-fit: cover;">
+                        @else
+                            <img src="https://via.placeholder.com/80x100?text=No" class="rounded me-3" width="80" alt="No Cover" style="height: 100px; object-fit: cover;">
+                        @endif
+                    </a>
                     <div class="flex-grow-1">
-                        <h6 class="fw-bold mb-1">Lập trình Laravel</h6>
-                        <p class="text-muted small mb-1">Lê Hùng Sơn</p>
-                        <div class="d-flex align-items-center gap-2">
-                            <span class="badge bg-primary">CNTT</span>
-                            <span class="badge bg-secondary">Laravel</span>
-                        </div>
+                        <h6 class="fw-bold mb-1">{{ $item['book']->title }}</h6>
+                        <p class="text-muted small mb-1">
+                            @foreach($item['book']->authors->take(2) as $author)
+                                {{ $author->name }}@if(!$loop->last), @endif
+                            @endforeach
+                        </p>
+                        @if($item['book']->category)
+                            <span class="badge bg-primary">{{ $item['book']->category->name }}</span>
+                        @endif
                     </div>
                     <div class="text-end me-3">
-                        <span class="text-orange fw-bold d-block">500 điểm</span>
-                        <small class="text-muted text-decoration-line-through">600 điểm</small>
+                        <span class="text-orange fw-bold d-block">{{ number_format($item['book']->price_points) }} điểm</span>
                     </div>
                     <div>
-                        <button class="btn btn-sm btn-outline-danger mb-2"><i class="bi bi-trash"></i></button>
+                        <a href="{{ route('cart.remove', $item['book']->id) }}" class="btn btn-sm btn-outline-danger mb-2">
+                            <i class="bi bi-trash"></i>
+                        </a>
                     </div>
                 </div>
-
-                <!-- Cart Item 2 -->
-                <div class="card border-0 shadow-sm mb-3 p-3 d-flex flex-row align-items-center">
-                    <img src="https://images.unsplash.com/photo-1512820790803-83ca734da794?w=400" class="rounded me-3" width="80" alt="Machine Learning">
-                    <div class="flex-grow-1">
-                        <h6 class="fw-bold mb-1">Machine Learning Cơ Bản</h6>
-                        <p class="text-muted small mb-1">Vũ Đình Long</p>
-                        <div class="d-flex align-items-center gap-2">
-                            <span class="badge bg-success">Khoa học</span>
-                            <span class="badge bg-warning text-dark">AI</span>
-                        </div>
-                    </div>
-                    <div class="text-end me-3">
-                        <span class="text-orange fw-bold d-block">750 điểm</span>
-                    </div>
-                    <div>
-                        <button class="btn btn-sm btn-outline-danger mb-2"><i class="bi bi-trash"></i></button>
-                    </div>
-                </div>
-
-                <!-- Cart Item 3 -->
-                <div class="card border-0 shadow-sm mb-3 p-3 d-flex flex-row align-items-center">
-                    <img src="https://images.unsplash.com/photo-1589998059171-988d887df646?w=400" class="rounded me-3" width="80" alt="Mắt Biếc">
-                    <div class="flex-grow-1">
-                        <h6 class="fw-bold mb-1">Mắt Biếc</h6>
-                        <p class="text-muted small mb-1">Nguyễn Nhật Ánh</p>
-                        <div class="d-flex align-items-center gap-2">
-                            <span class="badge bg-info text-dark">Văn học</span>
-                        </div>
-                    </div>
-                    <div class="text-end me-3">
-                        <span class="text-orange fw-bold d-block">500 điểm</span>
-                    </div>
-                    <div>
-                        <button class="btn btn-sm btn-outline-danger mb-2"><i class="bi bi-trash"></i></button>
-                    </div>
-                </div>
+                @endforeach
 
                 <div class="text-center py-4">
-                    <a href="{{ url('/books') }}" class="btn btn-primary rounded-pill">
+                    <a href="{{ route('books.index') }}" class="btn btn-primary rounded-pill">
                         <i class="bi bi-bag me-2"></i>Tiếp tục mua sắm
+                    </a>
+                    <a href="{{ route('cart.clear') }}" class="btn btn-outline-danger rounded-pill ms-2">
+                        <i class="bi bi-trash me-2"></i>Xóa giỏ hàng
                     </a>
                 </div>
             </div>
@@ -95,38 +81,65 @@
                 <div class="card border-0 shadow-sm p-4 sticky-top" style="top: 20px;">
                     <h5 class="fw-bold mb-4"><i class="bi bi-receipt me-2 text-orange"></i>Tóm Tắt Đơn Hàng</h5>
                     <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted">Tạm tính (3 sách)</span>
-                        <span>1,750 điểm</span>
+                        <span class="text-muted">Tạm tính ({{ count($cartItems) }} sách)</span>
+                        <span>{{ number_format($subtotal) }} điểm</span>
                     </div>
+                    @if($discount > 0)
                     <div class="d-flex justify-content-between mb-2">
                         <span class="text-muted">Giảm giá</span>
-                        <span class="text-success">-100 điểm</span>
+                        <span class="text-success">-{{ number_format($discount) }} điểm</span>
                     </div>
+                    @endif
                     <hr>
                     <div class="d-flex justify-content-between fw-bold fs-5 mb-4">
                         <span>Tổng cộng</span>
-                        <span class="text-orange">1,650 điểm</span>
+                        <span class="text-orange">{{ number_format($total) }} điểm</span>
                     </div>
-                    <div class="alert alert-light mb-4">
+                    
+                    @auth
+                    <div class="alert {{ $userPoints >= $total ? 'alert-success' : 'alert-warning' }} mb-4">
                         <div class="d-flex justify-content-between align-items-center">
                             <span><i class="bi bi-wallet2 me-2"></i>Số dư của bạn</span>
-                            <span class="fw-bold text-success">1,250 điểm</span>
+                            <span class="fw-bold">{{ number_format($userPoints) }} điểm</span>
                         </div>
-                        <small class="text-muted">Bạn cần nạp thêm 400 điểm để thanh toán</small>
+                        @if($userPoints < $total)
+                            <small class="text-muted">Bạn cần nạp thêm {{ number_format($total - $userPoints) }} điểm để thanh toán</small>
+                        @endif
                     </div>
-                    <div class="input-group mb-4">
-                        <input type="text" class="form-control" placeholder="Nhập mã giảm giá">
-                        <button class="btn btn-outline-primary" type="button">Áp dụng</button>
+                    
+                    @if($userPoints >= $total)
+                        <form action="{{ route('cart.checkout') }}" method="POST">
+                            @csrf
+                            <button type="submit" class="btn btn-primary w-100 py-3 rounded-pill">
+                                <i class="bi bi-credit-card me-2"></i>Thanh toán ngay
+                            </button>
+                        </form>
+                    @else
+                        <a href="{{ route('recharge') }}" class="btn btn-outline-secondary w-100 rounded-pill">
+                            <i class="bi bi-plus-circle me-2"></i>Nạp thêm điểm
+                        </a>
+                    @endif
+                    @else
+                    <div class="alert alert-info mb-4">
+                        <a href="{{ route('login') }}">Đăng nhập</a> để thanh toán.
                     </div>
-                    <button class="btn btn-primary w-100 py-3 rounded-pill mb-3" onclick="checkout()">
-                        <i class="bi bi-credit-card me-2"></i>Thanh toán ngay
-                    </button>
-                    <a href="{{ url('/recharge') }}" class="btn btn-outline-secondary w-100 rounded-pill">
-                        <i class="bi bi-plus-circle me-2"></i>Nạp thêm điểm
+                    <a href="{{ route('login') }}" class="btn btn-primary w-100 py-3 rounded-pill">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Đăng nhập
                     </a>
+                    @endauth
                 </div>
             </div>
         </div>
+        @else
+        <div class="text-center py-5">
+            <i class="bi bi-cart text-muted" style="font-size: 5rem;"></i>
+            <h3 class="text-muted mt-3">Giỏ hàng trống</h3>
+            <p class="text-muted">Hãy thêm sách vào giỏ hàng để mua sắm.</p>
+            <a href="{{ route('books.index') }}" class="btn btn-primary rounded-pill px-4">
+                <i class="bi bi-bag me-2"></i>Khám phá sách ngay
+            </a>
+        </div>
+        @endif
     </section>
 
     <!-- Newsletter Section -->

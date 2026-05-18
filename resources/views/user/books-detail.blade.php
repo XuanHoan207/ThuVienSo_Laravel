@@ -1,6 +1,6 @@
 ﻿@extends('user.component.layout')
 
-@section('title', 'Chi Tiết Sách - Thư Viện Số')
+@section('title', $book->title . ' - Thư Viện Số')
 
 @push('styles')
     @vite('resources/css/books-detail.css')
@@ -20,15 +20,20 @@
                 <!-- Left: Book Image -->
                 <div class="col-lg-4 mb-4">
                     <div class="position-relative">
-                        <img src="https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800" 
-                             alt="Lập trình Laravel" class="book-detail-img img-fluid w-100">
-                        <span class="badge bg-danger position-absolute top-0 start-0 m-3">-20%</span>
+                        @if($book->thumbnail)
+                            <img src="{{ asset('storage/' . $book->thumbnail) }}" alt="{{ $book->title }}" class="book-detail-img img-fluid w-100 rounded">
+                        @else
+                            <img src="https://via.placeholder.com/400x600?text=No+Cover" alt="No Cover" class="book-detail-img img-fluid w-100 rounded">
+                        @endif
+                        @if($book->rating_avg >= 4.5)
+                            <span class="badge bg-danger position-absolute top-0 start-0 m-3">Hot</span>
+                        @endif
                     </div>
                     <div class="d-flex gap-2 mt-3 justify-content-center">
-                        <button class="btn btn-outline-danger" id="wishlistBtn" onclick="toggleWishlist()">
-                            <i class="bi bi-heart"></i> Yêu thích
+                        <button class="btn {{ $hasFavorited ? 'btn-danger' : 'btn-outline-danger' }}" id="wishlistBtn" onclick="toggleWishlist()">
+                            <i class="bi bi-heart"></i> {{ $hasFavorited ? 'Đã yêu thích' : 'Yêu thích' }}
                         </button>
-                        <button class="btn btn-outline-secondary" onclick="reportBook()">
+                        <button class="btn btn-outline-secondary" onclick="openReportModal()">
                             <i class="bi bi-flag"></i> Báo cáo
                         </button>
                     </div>
@@ -36,46 +41,65 @@
 
                 <!-- Right: Book Info -->
                 <div class="col-lg-8">
+                    <!-- Categories & Tags -->
                     <div class="mb-3">
-                        <span class="badge bg-primary me-2">CNTT</span>
-                        <span class="badge bg-secondary me-2">Laravel</span>
-                        <span class="badge bg-info text-dark">PHP</span>
+                        @if($book->category)
+                            <span class="badge bg-primary me-2">{{ $book->category->name }}</span>
+                        @endif
+                        @foreach($book->tags->take(3) as $tag)
+                            <span class="badge" style="background-color: {{ $tag->color ?? '#6c757d' }};">{{ $tag->name }}</span>
+                        @endforeach
                     </div>
 
-                    <h1 class="fw-bold mb-2">Lập trình Laravel</h1>
+                    <h1 class="fw-bold mb-2">{{ $book->title }}</h1>
                     
+                    <!-- Authors -->
                     <p class="text-muted mb-2">
                         <span>Tác giả: </span>
-                        <a href="{{ url('/author-detail') }}" class="text-decoration-none">Lê Hùng Sơn</a>
+                        @foreach($book->authors as $author)
+                            <a href="{{ route('authors.show', $author->slug) }}" class="text-decoration-none">{{ $author->name }}</a>@if(!$loop->last), @endif
+                        @endforeach
                     </p>
 
                     <!-- Rating -->
                     <div class="mb-3">
                         <div class="d-flex align-items-center">
                             <span class="text-warning me-2" style="font-size: 1.2rem;">
-                                <i class="bi bi-star-fill"></i>
-                                <i class="bi bi-star-fill"></i>
-                                <i class="bi bi-star-fill"></i>
-                                <i class="bi bi-star-fill"></i>
-                                <i class="bi bi-star-half"></i>
+                                @for($i = 1; $i <= 5; $i++)
+                                    @if($i <= $book->rating_avg)
+                                        <i class="bi bi-star-fill"></i>
+                                    @elseif($i - 0.5 <= $book->rating_avg)
+                                        <i class="bi bi-star-half"></i>
+                                    @else
+                                        <i class="bi bi-star"></i>
+                                    @endif
+                                @endfor
                             </span>
-                            <span class="fw-bold me-1">4.5</span>
-                            <span class="text-muted">(245 đánh giá)</span>
+                            <span class="fw-bold me-1">{{ number_format($book->rating_avg, 1) }}</span>
+                            <span class="text-muted">({{ $book->rating_count }} đánh giá)</span>
                         </div>
                     </div>
 
-                    <!-- Price -->
+                    <!-- Price Card -->
                     <div class="card border-0 shadow-sm mb-4" style="background: linear-gradient(135deg, #ffcaa5 0%, #ffb088 100%);">
                         <div class="card-body text-dark">
                             <div class="row align-items-center">
                                 <div class="col">
-                                    <span class="fs-3 fw-bold">500 điểm</span>
-                                    <span class="text-decoration-line-through ms-2 opacity-75">600 điểm</span>
+                                    <span class="fs-3 fw-bold">{{ number_format($book->price_points) }} điểm</span>
+                                    @if($book->price_points > 0)
+                                        <span class="text-decoration-line-through ms-2 opacity-75">Miễn phí</span>
+                                    @endif
                                 </div>
                                 <div class="col-auto">
-                                    <button class="btn btn-orange rounded-pill px-4" id="addToCartBtn" onclick="addToCart()" style="background-color: #ff7043; border-color: #ff7043; color: white;">
-                                        <i class="bi bi-cart-plus me-2"></i>Thêm vào giỏ
-                                    </button>
+                                    @if($hasPurchased)
+                                        <a href="{{ route('books.download', $book->id) }}" class="btn btn-success rounded-pill px-4">
+                                            <i class="bi bi-download me-2"></i>Tải sách
+                                        </a>
+                                    @else
+                                        <button class="btn btn-orange rounded-pill px-4" onclick="addToCart()" style="background-color: #ff7043; border-color: #ff7043; color: white;">
+                                            <i class="bi bi-cart-plus me-2"></i>Thêm vào giỏ
+                                        </button>
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -83,31 +107,31 @@
 
                     <!-- Stats -->
                     <div class="row g-3 mb-4">
-                        <div class="col-md-3">
+                        <div class="col-md-3 col-6">
                             <div class="text-center p-3 bg-light rounded">
                                 <i class="bi bi-eye text-primary fs-4"></i>
-                                <p class="mb-0 mt-1"><strong>1.2k</strong></p>
+                                <p class="mb-0 mt-1"><strong>{{ number_format($book->view_count) }}</strong></p>
                                 <small class="text-muted">Lượt xem</small>
                             </div>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-3 col-6">
                             <div class="text-center p-3 bg-light rounded">
                                 <i class="bi bi-download text-success fs-4"></i>
-                                <p class="mb-0 mt-1"><strong>456</strong></p>
+                                <p class="mb-0 mt-1"><strong>{{ number_format($book->download_count) }}</strong></p>
                                 <small class="text-muted">Lượt tải</small>
                             </div>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-3 col-6">
                             <div class="text-center p-3 bg-light rounded">
                                 <i class="bi bi-heart text-danger fs-4"></i>
-                                <p class="mb-0 mt-1"><strong>89</strong></p>
+                                <p class="mb-0 mt-1"><strong>{{ number_format($book->favorites()->count()) }}</strong></p>
                                 <small class="text-muted">Yêu thích</small>
                             </div>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-3 col-6">
                             <div class="text-center p-3 bg-light rounded">
                                 <i class="bi bi-calendar text-info fs-4"></i>
-                                <p class="mb-0 mt-1"><strong>2025</strong></p>
+                                <p class="mb-0 mt-1"><strong>{{ $book->published_year ?? 'N/A' }}</strong></p>
                                 <small class="text-muted">Năm XB</small>
                             </div>
                         </div>
@@ -119,15 +143,27 @@
                             <h5 class="fw-bold mb-3">Thông tin sách</h5>
                             <div class="row">
                                 <div class="col-md-6">
-                                    <p class="mb-2"><strong>ISBN:</strong> 978-0123456789</p>
-                                    <p class="mb-2"><strong>Nhà xuất bản:</strong> FPT Software</p>
-                                    <p class="mb-2"><strong>Ngôn ngữ:</strong> Tiếng Việt</p>
-                                    <p class="mb-2"><strong>Số trang:</strong> 320</p>
+                                    @if($book->isbn)
+                                        <p class="mb-2"><strong>ISBN:</strong> {{ $book->isbn }}</p>
+                                    @endif
+                                    @if($book->publisher)
+                                        <p class="mb-2"><strong>Nhà xuất bản:</strong> {{ $book->publisher->name }}</p>
+                                    @endif
+                                    <p class="mb-2"><strong>Ngôn ngữ:</strong> {{ $book->language ?? 'Tiếng Việt' }}</p>
+                                    @if($book->pages)
+                                        <p class="mb-2"><strong>Số trang:</strong> {{ $book->pages }}</p>
+                                    @endif
                                 </div>
                                 <div class="col-md-6">
-                                    <p class="mb-2"><strong>Định dạng:</strong> PDF, EPUB</p>
-                                    <p class="mb-2"><strong>Dung lượng:</strong> 15.2 MB</p>
-                                    <p class="mb-2"><strong>Ngày phát hành:</strong> 15/03/2025</p>
+                                    @if($book->file_type)
+                                        <p class="mb-2"><strong>Định dạng:</strong> {{ strtoupper($book->file_type) }}</p>
+                                    @endif
+                                    @if($book->file_size)
+                                        <p class="mb-2"><strong>Dung lượng:</strong> {{ $book->formatted_file_size }}</p>
+                                    @endif
+                                    @if($book->published_year)
+                                        <p class="mb-2"><strong>Ngày phát hành:</strong> {{ $book->published_year }}</p>
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -144,7 +180,7 @@
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews" type="button">
-                        <i class="bi bi-star me-2"></i>Đánh giá (245)
+                        <i class="bi bi-star me-2"></i>Đánh giá ({{ $book->rating_count }})
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
@@ -160,59 +196,8 @@
                     <div class="card border-0 shadow-sm">
                         <div class="card-body">
                             <h4 class="fw-bold mb-3">Giới thiệu sách</h4>
-                            <p class="mb-3">
-                                <strong>"Lập trình Laravel"</strong> là cuốn sách hướng dẫn chi tiết về framework PHP Laravel - 
-                                một trong những framework PHP phổ biến nhất hiện nay.
-                            </p>
-                            <p class="mb-3">
-                                Cuốn sách bao gồm các nội dung từ cơ bản đến nâng cao, giúp bạn:
-                            </p>
-                            <ul class="mb-3">
-                                <li>Hiểu rõ kiến trúc and cách hoạt động của Laravel</li>
-                                <li>Xây dựng ứng dụng web từ đơn giản đến phức tạp</li>
-                                <li>Sử dụng Eloquent ORM để làm việc with database</li>
-                                <li>Tạo API RESTful with Laravel</li>
-                                <li>Triển khai ứng dụng Laravel lên production</li>
-                            </ul>
-                            <p class="mb-3">
-                                Với phong cách viết dễ hiểu, có nhiều ví dụ thực tế and bài tập practical, 
-                                cuốn sách này là tài liệu không thể thiếu cho bất kỳ ai muốn học Laravel.
-                            </p>
-                            <h5 class="fw-bold mt-4 mb-3">Mục lục</h5>
-                            <div class="accordion" id="tocAccordion">
-                                <div class="accordion-item">
-                                    <h2 class="accordion-header">
-                                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#toc1">
-                                            Phần 1: Cơ bản về Laravel
-                                        </button>
-                                    </h2>
-                                    <div id="toc1" class="accordion-collapse collapse show" data-bs-parent="#tocAccordion">
-                                        <div class="accordion-body">
-                                            <ul class="mb-0">
-                                                <li>Chương 1: Giới thiệu Laravel</li>
-                                                <li>Chương 2: Cài đặt and cấu hình</li>
-                                                <li>Chương 3: Routing and Controller</li>
-                                                <li>Chương 4: Blade Template Engine</li>
-                                            </ul>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="accordion-item">
-                                    <h2 class="accordion-header">
-                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#toc2">
-                                            Phần 2: Database and Eloquent
-                                        </button>
-                                    </h2>
-                                    <div id="toc2" class="accordion-collapse collapse" data-bs-parent="#tocAccordion">
-                                        <div class="accordion-body">
-                                            <ul class="mb-0">
-                                                <li>Chương 5: Database Migration</li>
-                                                <li>Chương 6: Eloquent ORM</li>
-                                                <li>Chương 7: Query Builder</li>
-                                            </ul>
-                                        </div>
-                                    </div>
-                                </div>
+                            <div class="book-description">
+                                {!! nl2br(e($book->description)) !!}
                             </div>
                         </div>
                     </div>
@@ -225,54 +210,33 @@
                         <div class="col-lg-4 mb-4">
                             <div class="card border-0 shadow-sm">
                                 <div class="card-body text-center py-4">
-                                    <h2 class="fw-bold text-warning mb-0">4.5</h2>
+                                    <h2 class="fw-bold text-warning mb-0">{{ number_format($book->rating_avg, 1) }}</h2>
                                     <div class="text-warning mb-2">
-                                        <i class="bi bi-star-fill"></i>
-                                        <i class="bi bi-star-fill"></i>
-                                        <i class="bi bi-star-fill"></i>
-                                        <i class="bi bi-star-fill"></i>
-                                        <i class="bi bi-star-half"></i>
+                                        @for($i = 1; $i <= 5; $i++)
+                                            @if($i <= $book->rating_avg)
+                                                <i class="bi bi-star-fill"></i>
+                                            @elseif($i - 0.5 <= $book->rating_avg)
+                                                <i class="bi bi-star-half"></i>
+                                            @else
+                                                <i class="bi bi-star"></i>
+                                            @endif
+                                        @endfor
                                     </div>
-                                    <p class="text-muted mb-0">245 đánh giá</p>
+                                    <p class="text-muted mb-0">{{ $book->rating_count }} đánh giá</p>
 
                                     <hr>
 
                                     <div class="text-start">
-                                        <div class="d-flex align-items-center mb-2">
-                                            <span class="me-2">5</span><i class="bi bi-star-fill text-warning me-2"></i>
-                                            <div class="progress flex-grow-1" style="height: 8px;">
-                                                <div class="progress-bar bg-warning" style="width: 70%;"></div>
+                                        @for($star = 5; $star >= 1; $star--)
+                                            <div class="d-flex align-items-center mb-2">
+                                                <span class="me-2">{{ $star }}</span>
+                                                <i class="bi bi-star-fill text-warning me-2"></i>
+                                                <div class="progress flex-grow-1" style="height: 8px;">
+                                                    <div class="progress-bar bg-warning" style="width: {{ $ratingDistribution[$star]['percentage'] }}%;"></div>
+                                                </div>
+                                                <span class="ms-2 text-muted">{{ $ratingDistribution[$star]['percentage'] }}%</span>
                                             </div>
-                                            <span class="ms-2 text-muted">70%</span>
-                                        </div>
-                                        <div class="d-flex align-items-center mb-2">
-                                            <span class="me-2">4</span><i class="bi bi-star-fill text-warning me-2"></i>
-                                            <div class="progress flex-grow-1" style="height: 8px;">
-                                                <div class="progress-bar bg-warning" style="width: 20%;"></div>
-                                            </div>
-                                            <span class="ms-2 text-muted">20%</span>
-                                        </div>
-                                        <div class="d-flex align-items-center mb-2">
-                                            <span class="me-2">3</span><i class="bi bi-star-fill text-warning me-2"></i>
-                                            <div class="progress flex-grow-1" style="height: 8px;">
-                                                <div class="progress-bar bg-warning" style="width: 5%;"></div>
-                                            </div>
-                                            <span class="ms-2 text-muted">5%</span>
-                                        </div>
-                                        <div class="d-flex align-items-center mb-2">
-                                            <span class="me-2">2</span><i class="bi bi-star-fill text-warning me-2"></i>
-                                            <div class="progress flex-grow-1" style="height: 8px;">
-                                                <div class="progress-bar bg-warning" style="width: 3%;"></div>
-                                            </div>
-                                            <span class="ms-2 text-muted">3%</span>
-                                        </div>
-                                        <div class="d-flex align-items-center">
-                                            <span class="me-2">1</span><i class="bi bi-star-fill text-warning me-2"></i>
-                                            <div class="progress flex-grow-1" style="height: 8px;">
-                                                <div class="progress-bar bg-warning" style="width: 2%;"></div>
-                                            </div>
-                                            <span class="ms-2 text-muted">2%</span>
-                                        </div>
+                                        @endfor
                                     </div>
                                 </div>
                             </div>
@@ -281,110 +245,69 @@
                         <!-- Reviews List -->
                         <div class="col-lg-8">
                             <!-- Write Review -->
+                            @auth
                             <div class="card border-0 shadow-sm mb-4">
                                 <div class="card-body">
                                     <h5 class="fw-bold mb-3">Viết đánh giá của bạn</h5>
-                                    <form id="reviewForm">
-                                        <div class="mb-3">
-                                            <label class="form-label">Xếp hạng của bạn</label>
-                                            <div class="star-rating-input" id="ratingInput">
-                                                <i class="bi bi-star" data-rating="1"></i>
-                                                <i class="bi bi-star" data-rating="2"></i>
-                                                <i class="bi bi-star" data-rating="3"></i>
-                                                <i class="bi bi-star" data-rating="4"></i>
-                                                <i class="bi bi-star" data-rating="5"></i>
+                                    @if($userRating)
+                                        <div class="alert alert-info">
+                                            <i class="bi bi-info-circle me-2"></i>Bạn đã đánh giá cuốn sách này {{ $userRating->stars }} sao.
+                                        </div>
+                                    @else
+                                        <form id="reviewForm">
+                                            @csrf
+                                            <input type="hidden" name="book_id" value="{{ $book->id }}">
+                                            <div class="mb-3">
+                                                <label class="form-label">Xếp hạng của bạn</label>
+                                                <div class="star-rating-input" id="ratingInput">
+                                                    @for($i = 1; $i <= 5; $i++)
+                                                        <i class="bi bi-star" data-rating="{{ $i }}" onclick="setRating({{ $i }})"></i>
+                                                    @endfor
+                                                </div>
+                                                <input type="hidden" name="stars" id="selectedRating" value="">
                                             </div>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">Đánh giá của bạn</label>
-                                            <textarea class="form-control" rows="3" placeholder="Chia sẻ trải nghiệm của bạn..."></textarea>
-                                        </div>
-                                        <button type="submit" class="btn btn-primary">Gửi đánh giá</button>
-                                    </form>
+                                            <div class="mb-3">
+                                                <label class="form-label">Đánh giá của bạn</label>
+                                                <textarea name="comment" class="form-control" rows="3" placeholder="Chia sẻ trải nghiệm của bạn..."></textarea>
+                                            </div>
+                                            <button type="submit" class="btn btn-primary">Gửi đánh giá</button>
+                                        </form>
+                                    @endif
                                 </div>
                             </div>
+                            @endauth
 
                             <!-- Review List -->
                             <div id="reviewsList">
-                                <!-- Review 1 -->
+                                @forelse($book->ratings->take(10) as $rating)
                                 <div class="card review-card mb-3">
                                     <div class="card-body">
                                         <div class="d-flex mb-2">
-                                            <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=50&h=50&fit=crop" 
+                                            <img src="{{ $rating->user->avatar ? asset('storage/' . $rating->user->avatar) : 'https://via.placeholder.com/50' }}" 
                                                  alt="" class="rounded-circle me-3" style="width: 50px; height: 50px; object-fit: cover;">
                                             <div>
-                                                <h6 class="mb-0">Nguyễn Văn A</h6>
+                                                <h6 class="mb-0">{{ $rating->user->name ?? 'Người dùng' }}</h6>
                                                 <div class="text-warning small">
-                                                    <i class="bi bi-star-fill"></i>
-                                                    <i class="bi bi-star-fill"></i>
-                                                    <i class="bi bi-star-fill"></i>
-                                                    <i class="bi bi-star-fill"></i>
-                                                    <i class="bi bi-star-fill"></i>
+                                                    @for($i = 1; $i <= 5; $i++)
+                                                        @if($i <= $rating->stars)
+                                                            <i class="bi bi-star-fill"></i>
+                                                        @else
+                                                            <i class="bi bi-star"></i>
+                                                        @endif
+                                                    @endfor
                                                 </div>
                                             </div>
-                                            <span class="ms-auto text-muted small">15/05/2026</span>
+                                            <span class="ms-auto text-muted small">{{ $rating->created_at->diffForHumans() }}</span>
                                         </div>
-                                        <p class="mb-0">
-                                            Cuốn sách rất hay and dễ hiểu! Tác giả trình bày logic từ cơ bản đến nâng cao, 
-                                            giúp người đọc dễ dàng tiếp cận Laravel. Đặc biệt các ví dụ thực tế rất hữu ích.
-                                        </p>
+                                        <p class="mb-0">{{ $rating->comment ?? '' }}</p>
                                     </div>
                                 </div>
-
-                                <!-- Review 2 -->
-                                <div class="card review-card mb-3">
-                                    <div class="card-body">
-                                        <div class="d-flex mb-2">
-                                            <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=50&h=50&fit=crop" 
-                                                 alt="" class="rounded-circle me-3" style="width: 50px; height: 50px; object-fit: cover;">
-                                            <div>
-                                                <h6 class="mb-0">Trần Thị B</h6>
-                                                <div class="text-warning small">
-                                                    <i class="bi bi-star-fill"></i>
-                                                    <i class="bi bi-star-fill"></i>
-                                                    <i class="bi bi-star-fill"></i>
-                                                    <i class="bi bi-star-fill"></i>
-                                                    <i class="bi bi-star"></i>
-                                                </div>
-                                            </div>
-                                            <span class="ms-auto text-muted small">12/05/2026</span>
-                                        </div>
-                                        <p class="mb-0">
-                                            Nội dung phong phú, có nhiều bài tập thực hành. Tuy nhiên phần về API hơi ngắn, 
-                                            mong tác giả bổ sung thêm ở phiên bản sau.
-                                        </p>
-                                    </div>
+                                @empty
+                                <div class="text-center py-4">
+                                    <p class="text-muted">Chưa có đánh giá nào. Hãy là người đầu tiên đánh giá!</p>
                                 </div>
-
-                                <!-- Review 3 -->
-                                <div class="card review-card mb-3">
-                                    <div class="card-body">
-                                        <div class="d-flex mb-2">
-                                            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=50&h=50&fit=crop" 
-                                                 alt="" class="rounded-circle me-3" style="width: 50px; height: 50px; object-fit: cover;">
-                                            <div>
-                                                <h6 class="mb-0">Lê Minh C</h6>
-                                                <div class="text-warning small">
-                                                    <i class="bi bi-star-fill"></i>
-                                                    <i class="bi bi-star-fill"></i>
-                                                    <i class="bi bi-star-fill"></i>
-                                                    <i class="bi bi-star-fill"></i>
-                                                    <i class="bi bi-star-half"></i>
-                                                </div>
-                                            </div>
-                                            <span class="ms-auto text-muted small">10/05/2026</span>
-                                        </div>
-                                        <p class="mb-0">
-                                            Sách tốt cho người mới bắt đầu. Mình đã học được nhiều từ cuốn sách này 
-                                            and giờ có thể tự xây dựng ứng dụng Laravel hoàn chỉnh.
-                                        </p>
-                                    </div>
-                                </div>
+                                @endforelse
                             </div>
-
-                            <button class="btn btn-outline-primary w-100 mt-3" onclick="loadMoreReviews()">
-                                Xem thêm đánh giá
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -394,159 +317,111 @@
                     <div class="card border-0 shadow-sm">
                         <div class="card-body">
                             <!-- Comment Form -->
+                            @auth
                             <div class="mb-4">
                                 <form id="commentForm">
+                                    @csrf
+                                    <input type="hidden" name="book_id" value="{{ $book->id }}">
                                     <div class="d-flex gap-3">
-                                        <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=50&h=50&fit=crop" 
+                                        <img src="{{ auth()->user()->avatar ? asset('storage/' . auth()->user()->avatar) : 'https://via.placeholder.com/50' }}" 
                                              alt="" class="rounded-circle" style="width: 50px; height: 50px; object-fit: cover;">
                                         <div class="flex-grow-1">
-                                            <textarea class="form-control" rows="3" placeholder="Viết bình luận của bạn..."></textarea>
+                                            <textarea name="content" class="form-control" rows="3" placeholder="Viết bình luận của bạn..."></textarea>
                                             <button type="submit" class="btn btn-primary mt-2">Gửi bình luận</button>
                                         </div>
                                     </div>
                                 </form>
                             </div>
+                            @else
+                            <div class="alert alert-info mb-4">
+                                <a href="{{ route('login') }}">Đăng nhập</a> để viết bình luận.
+                            </div>
+                            @endauth
 
                             <hr>
 
                             <!-- Comments List -->
                             <div id="commentsList">
-                                <!-- Comment 1 -->
+                                @forelse($comments as $comment)
                                 <div class="d-flex gap-3 mb-4">
-                                    <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=50&h=50&fit=crop" 
+                                    <img src="{{ $comment->user->avatar ? asset('storage/' . $comment->user->avatar) : 'https://via.placeholder.com/50' }}" 
                                          alt="" class="rounded-circle" style="width: 50px; height: 50px; object-fit: cover;">
                                     <div class="flex-grow-1">
                                         <div class="bg-light p-3 rounded">
                                             <div class="d-flex justify-content-between">
-                                                <h6 class="mb-1">Trần Thị B</h6>
-                                                <small class="text-muted">15/05/2026 10:30</small>
+                                                <h6 class="mb-1">{{ $comment->user->name ?? 'Người dùng' }}</h6>
+                                                <small class="text-muted">{{ $comment->created_at->diffForHumans() }}</small>
                                             </div>
-                                            <p class="mb-2">Cảm ơn tác giả đã viết cuốn sách này! Rất hữu ích cho người mới học Laravel.</p>
+                                            <p class="mb-2">{{ $comment->content }}</p>
+                                            @auth
                                             <div class="d-flex gap-3">
-                                                <a href="#" class="text-decoration-none small"><i class="bi bi-hand-thumbs-up me-1"></i> Thích (5)</a>
-                                                <a href="#" class="text-decoration-none small"><i class="bi bi-reply me-1"></i> Trả lời</a>
+                                                <a href="#" class="text-decoration-none small"><i class="bi bi-hand-thumbs-up me-1"></i> Thích</a>
+                                                <a href="#" class="text-decoration-none small" onclick="showReplyForm({{ $comment->id }}); return false;"><i class="bi bi-reply me-1"></i> Trả lời</a>
                                             </div>
+                                            @endauth
                                         </div>
 
-                                        <!-- Reply -->
+                                        <!-- Replies -->
+                                        @forelse($comment->approvedReplies as $reply)
                                         <div class="d-flex gap-3 mt-3 ms-5">
-                                            <img src="https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=50&h=50&fit=crop" 
+                                            <img src="{{ $reply->user->avatar ? asset('storage/' . $reply->user->avatar) : 'https://via.placeholder.com/40' }}" 
                                                  alt="" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
                                             <div class="flex-grow-1">
                                                 <div class="bg-light p-3 rounded">
                                                     <div class="d-flex justify-content-between">
-                                                        <h6 class="mb-1">Lê Hùng Sơn (Tác giả)</h6>
-                                                        <small class="text-muted">15/05/2026 11:00</small>
+                                                        <h6 class="mb-1">{{ $reply->user->name ?? 'Người dùng' }}</h6>
+                                                        <small class="text-muted">{{ $reply->created_at->diffForHumans() }}</small>
                                                     </div>
-                                                    <p class="mb-2">Cảm ơn bạn đã đọc and đánh giá cao cuốn sách! Rất vui vì nó hữu ích cho bạn.</p>
-                                                    <div class="d-flex gap-3">
-                                                        <a href="#" class="text-decoration-none small"><i class="bi bi-hand-thumbs-up me-1"></i> Thích (3)</a>
-                                                        <a href="#" class="text-decoration-none small"><i class="bi bi-reply me-1"></i> Trả lời</a>
-                                                    </div>
+                                                    <p class="mb-0">{{ $reply->content }}</p>
                                                 </div>
                                             </div>
                                         </div>
+                                        @empty
+                                        @endforelse
                                     </div>
                                 </div>
-
-                                <!-- Comment 2 -->
-                                <div class="d-flex gap-3 mb-4">
-                                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=50&h=50&fit=crop" 
-                                         alt="" class="rounded-circle" style="width: 50px; height: 50px; object-fit: cover;">
-                                    <div class="flex-grow-1">
-                                        <div class="bg-light p-3 rounded">
-                                            <div class="d-flex justify-content-between">
-                                                <h6 class="mb-1">Nguyễn Văn C</h6>
-                                                <small class="text-muted">14/05/2026 16:45</small>
-                                            </div>
-                                            <p class="mb-2">Sách có bản PDF không? Mình muốn đọc trên tablet.</p>
-                                            <div class="d-flex gap-3">
-                                                <a href="#" class="text-decoration-none small"><i class="bi bi-hand-thumbs-up me-1"></i> Thích (2)</a>
-                                                <a href="#" class="text-decoration-none small"><i class="bi bi-reply me-1"></i> Trả lời</a>
-                                            </div>
-                                        </div>
-                                    </div>
+                                @empty
+                                <div class="text-center py-4">
+                                    <p class="text-muted">Chưa có bình luận nào.</p>
                                 </div>
+                                @endforelse
                             </div>
-
-                            <button class="btn btn-outline-primary w-100 mt-3">
-                                Xem thêm bình luận
-                            </button>
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- Related Books -->
+            @if($relatedBooks->count() > 0)
             <div class="mt-5">
                 <h4 class="fw-bold mb-4"><i class="bi bi-book me-2 text-orange"></i>Sách liên quan</h4>
                 <div class="row gy-4">
-                    <div class="col-md-3">
-                        <a href="{{ url('/books-detail') }}" class="text-decoration-none">
+                    @foreach($relatedBooks as $related)
+                    <div class="col-md-3 col-6">
+                        <a href="{{ route('books.show', $related->slug) }}" class="text-decoration-none">
                             <div class="card related-book-card border-0 shadow-sm">
-                                <img src="https://images.unsplash.com/photo-1512820790803-83ca734da794?w=400&h=300&fit=crop" 
-                                     class="card-img-top" alt="" style="height: 180px; object-fit: cover;">
+                                @if($related->thumbnail)
+                                    <img src="{{ asset('storage/' . $related->thumbnail) }}" class="card-img-top" alt="" style="height: 180px; object-fit: cover;">
+                                @else
+                                    <img src="https://via.placeholder.com/300x180?text=No+Cover" class="card-img-top" alt="" style="height: 180px; object-fit: cover;">
+                                @endif
                                 <div class="card-body">
-                                    <h6 class="fw-bold mb-1">Python Cơ Bản</h6>
-                                    <p class="text-muted small mb-2">Lê Hùng Sơn</p>
+                                    <h6 class="fw-bold mb-1 text-truncate">{{ $related->title }}</h6>
+                                    <p class="text-muted small mb-2">{{ $related->authors->first()?->name ?? 'N/A' }}</p>
                                     <div class="d-flex justify-content-between align-items-center">
-                                        <span class="text-orange fw-bold">400 điểm</span>
-                                        <span class="text-warning small"><i class="bi bi-star-fill"></i> 4.3</span>
+                                        <span class="text-orange fw-bold">{{ number_format($related->price_points) }} đ</span>
+                                        @if($related->rating_avg > 0)
+                                            <span class="text-warning small"><i class="bi bi-star-fill"></i> {{ number_format($related->rating_avg, 1) }}</span>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
                         </a>
                     </div>
-                    <div class="col-md-3">
-                        <a href="{{ url('/books-detail') }}" class="text-decoration-none">
-                            <div class="card related-book-card border-0 shadow-sm">
-                                <img src="https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=400&h=300&fit=crop" 
-                                     class="card-img-top" alt="" style="height: 180px; object-fit: cover;">
-                                <div class="card-body">
-                                    <h6 class="fw-bold mb-1">JavaScript Nâng Cao</h6>
-                                    <p class="text-muted small mb-2">Trần Đức Shins</p>
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <span class="text-orange fw-bold">550 điểm</span>
-                                        <span class="text-warning small"><i class="bi bi-star-fill"></i> 4.7</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </a>
-                    </div>
-                    <div class="col-md-3">
-                        <a href="{{ url('/books-detail') }}" class="text-decoration-none">
-                            <div class="card related-book-card border-0 shadow-sm">
-                                <img src="https://images.unsplash.com/photo-1589998059171-988d887df646?w=400&h=300&fit=crop" 
-                                     class="card-img-top" alt="" style="height: 180px; object-fit: cover;">
-                                <div class="card-body">
-                                    <h6 class="fw-bold mb-1">React Thực Chiến</h6>
-                                    <p class="text-muted small mb-2">Vũ Đình Long</p>
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <span class="text-orange fw-bold">600 điểm</span>
-                                        <span class="text-warning small"><i class="bi bi-star-fill"></i> 4.8</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </a>
-                    </div>
-                    <div class="col-md-3">
-                        <a href="{{ url('/books-detail') }}" class="text-decoration-none">
-                            <div class="card related-book-card border-0 shadow-sm">
-                                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop" 
-                                     class="card-img-top" alt="" style="height: 180px; object-fit: cover;">
-                                <div class="card-body">
-                                    <h6 class="fw-bold mb-1">Node.js Cơ Bản</h6>
-                                    <p class="text-muted small mb-2">Lê Hùng Sơn</p>
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <span class="text-orange fw-bold">450 điểm</span>
-                                        <span class="text-warning small"><i class="bi bi-star-fill"></i> 4.5</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </a>
-                    </div>
+                    @endforeach
                 </div>
             </div>
+            @endif
         </div>
     </section>
 
@@ -558,26 +433,30 @@
                     <h5 class="modal-title"><i class="bi bi-flag me-2"></i>Báo cáo sách</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Loại vi phạm</label>
-                        <select class="form-select">
-                            <option value="">Chọn loại vi phạm</option>
-                            <option value="copyright">Vi phạm bản quyền</option>
-                            <option value="inappropriate">Nội dung không phù hợp</option>
-                            <option value="broken_link">Link hỏng</option>
-                            <option value="other">Khác</option>
-                        </select>
+                <form id="reportForm">
+                    @csrf
+                    <input type="hidden" name="book_id" value="{{ $book->id }}">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Loại vi phạm</label>
+                            <select name="type" class="form-select" required>
+                                <option value="">Chọn loại vi phạm</option>
+                                <option value="copyright">Vi phạm bản quyền</option>
+                                <option value="inappropriate">Nội dung không phù hợp</option>
+                                <option value="broken_link">Link hỏng</option>
+                                <option value="other">Khác</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Mô tả chi tiết</label>
+                            <textarea name="reason" class="form-control" rows="4" placeholder="Mô tả vấn đề của bạn..." required></textarea>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Mô tả chi tiết</label>
-                        <textarea class="form-control" rows="4" placeholder="Mô tả vấn đề của bạn..."></textarea>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="btn btn-danger">Gửi báo cáo</button>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                    <button type="button" class="btn btn-danger" onclick="submitReport()">Gửi báo cáo</button>
-                </div>
+                </form>
             </div>
         </div>
     </div>
@@ -585,14 +464,159 @@
     <!-- Newsletter Section -->
     <section class="newsletter-section">
         <h3>Đăng Ký Nhận Tin</h3>
-        <p>Đăng ký để nhận thông tin về sách mới and ưu đãi hấp dẫn.</p>
+        <p>Đăng ký để nhận thông tin về sách mới và ưu đãi hấp dẫn.</p>
         <div class="newsletter-input">
             <input type="email" placeholder="Nhập email của bạn">
             <button>ĐĂNG KÝ</button>
         </div>
     </section>
 
-    <!-- Footer -->
     @include('user.component.footer')
 @endsection
 
+@push('scripts')
+<script>
+let selectedRating = 0;
+
+function setRating(rating) {
+    selectedRating = rating;
+    document.getElementById('selectedRating').value = rating;
+    const stars = document.querySelectorAll('#ratingInput i');
+    stars.forEach((star, index) => {
+        if (index < rating) {
+            star.classList.add('text-warning');
+        } else {
+            star.classList.remove('text-warning');
+        }
+    });
+}
+
+function addToCart() {
+    fetch('/cart/add', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({ book_id: {{ $book->id }} })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            location.reload();
+        } else {
+            alert(data.error || 'Có lỗi xảy ra!');
+        }
+    });
+}
+
+function toggleWishlist() {
+    fetch('/wishlist/toggle', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({ book_id: {{ $book->id }} })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const btn = document.getElementById('wishlistBtn');
+            if (data.is_favorited) {
+                btn.classList.remove('btn-outline-danger');
+                btn.classList.add('btn-danger');
+                btn.innerHTML = '<i class="bi bi-heart"></i> Đã yêu thích';
+            } else {
+                btn.classList.remove('btn-danger');
+                btn.classList.add('btn-outline-danger');
+                btn.innerHTML = '<i class="bi bi-heart"></i> Yêu thích';
+            }
+            alert(data.message);
+        } else {
+            alert(data.error || 'Vui lòng đăng nhập!');
+        }
+    });
+}
+
+function openReportModal() {
+    new bootstrap.Modal(document.getElementById('reportModal')).show();
+}
+
+// Review Form
+document.getElementById('reviewForm')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    if (selectedRating === 0) {
+        alert('Vui lòng chọn số sao đánh giá!');
+        return;
+    }
+    
+    const formData = new FormData(this);
+    formData.set('stars', selectedRating);
+    
+    fetch('{{ route('books.review', $book->id) }}', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            location.reload();
+        } else {
+            alert(data.error || 'Có lỗi xảy ra!');
+        }
+    });
+});
+
+// Comment Form
+document.getElementById('commentForm')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    
+    fetch('{{ route('books.comment', $book->id) }}', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            location.reload();
+        } else {
+            alert(data.error || 'Có lỗi xảy ra!');
+        }
+    });
+});
+
+// Report Form
+document.getElementById('reportForm')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    
+    fetch('{{ route('books.report', $book->id) }}', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            bootstrap.Modal.getInstance(document.getElementById('reportModal')).hide();
+        } else {
+            alert(data.error || 'Có lỗi xảy ra!');
+        }
+    });
+});
+</script>
+@endpush
