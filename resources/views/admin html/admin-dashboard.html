@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Thư Viện Số Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+    <div class="admin-wrapper">
+        <!-- Sidebar Overlay -->
+        <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+        
+        <!-- Sidebar -->
+        <aside class="admin-sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <div class="sidebar-logo-icon">
+                        <i class="fas fa-book-open"></i>
+                    </div>
+                    <div class="sidebar-logo-text">
+                        <h1>Thư Viện Số</h1>
+                        <span>Admin Panel</span>
+                    </div>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Chính</div>
+                    <div class="nav-item">
+                        <a href="admin-dashboard.html" class="nav-link active">
+                            <i class="fas fa-chart-pie"></i>
+                            Dashboard
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="admin-statistics.html" class="nav-link">
+                            <i class="fas fa-chart-line"></i>
+                            Thống kê
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Quản lý nội dung</div>
+                    <div class="nav-item">
+                        <a href="admin-books.html" class="nav-link">
+                            <i class="fas fa-book"></i>
+                            Sách
+                            <span class="badge badge-warning">12</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="admin-categories.html" class="nav-link">
+                            <i class="fas fa-folder"></i>
+                            Danh mục
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="admin-authors.html" class="nav-link">
+                            <i class="fas fa-user-pen"></i>
+                            Tác giả
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="admin-publishers.html" class="nav-link">
+                            <i class="fas fa-building"></i>
+                            Nhà xuất bản
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Quản lý người dùng</div>
+                    <div class="nav-item">
+                        <a href="admin-users.html" class="nav-link">
+                            <i class="fas fa-users"></i>
+                            Người dùng
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="admin-purchases.html" class="nav-link">
+                            <i class="fas fa-shopping-cart"></i>
+                            Giao dịch
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Kiểm duyệt</div>
+                    <div class="nav-item">
+                        <a href="admin-comments.html" class="nav-link">
+                            <i class="fas fa-comments"></i>
+                            Bình luận
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="admin-reports.html" class="nav-link">
+                            <i class="fas fa-flag"></i>
+                            Báo cáo vi phạm
+                            <span class="badge badge-danger">5</span>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Hệ thống</div>
+                    <div class="nav-item">
+                        <a href="admin-notifications.html" class="nav-link">
+                            <i class="fas fa-bell"></i>
+                            Thông báo
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="admin-settings.html" class="nav-link">
+                            <i class="fas fa-cog"></i>
+                            Cài đặt
+                        </a>
+                    </div>
+                </div>
+            </nav>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="admin-main">
+            <!-- Header -->
+            <header class="admin-header">
+                <div class="header-left">
+                    <button class="mobile-toggle" onclick="toggleSidebar()">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div>
+                        <h2>Dashboard</h2>
+                        <div class="breadcrumb">
+                            <a href="admin-dashboard.html">Admin</a>
+                            <i class="fas fa-chevron-right"></i>
+                            <span>Dashboard</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="header-right">
+                    <div class="header-search">
+                        <input type="text" placeholder="Tìm kiếm...">
+                        <button><i class="fas fa-search"></i></button>
+                    </div>
+                    
+                    <div class="header-actions">
+                        <button class="header-action-btn">
+                            <i class="fas fa-bell"></i>
+                            <span class="badge">3</span>
+                        </button>
+                        <button class="header-action-btn">
+                            <i class="fas fa-envelope"></i>
+                            <span class="badge">5</span>
+                        </button>
+                    </div>
+                    
+                    <div class="user-dropdown">
+                        <div class="user-avatar">AD</div>
+                        <div class="user-info">
+                            <h4>Admin</h4>
+                            <span>Quản trị viên</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Content -->
+            <div class="admin-content">
+                <!-- Stats Grid -->
+                <div class="stats-grid">
+                    <div class="stat-card purple">
+                        <span class="stat-change up"><i class="fas fa-arrow-up"></i> 12%</span>
+                        <div class="stat-icon">
+                            <i class="fas fa-book"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3>1,248</h3>
+                            <p>Tổng sách</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card orange">
+                        <span class="stat-change up"><i class="fas fa-arrow-up"></i> 8%</span>
+                        <div class="stat-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3>5,678</h3>
+                            <p>Người dùng</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card green">
+                        <span class="stat-change up"><i class="fas fa-arrow-up"></i> 25%</span>
+                        <div class="stat-icon">
+                            <i class="fas fa-download"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3>18,432</h3>
+                            <p>Lượt tải</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card blue">
+                        <span class="stat-change down"><i class="fas fa-arrow-down"></i> 3%</span>
+                        <div class="stat-icon">
+                            <i class="fas fa-eye"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3>89,321</h3>
+                            <p>Lượt xem</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Charts Section -->
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <h3><i class="fas fa-chart-area"></i> Thống kê lượt truy cập</h3>
+                        <div class="chart-container">
+                            <canvas id="visitsChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-card">
+                        <h3><i class="fas fa-chart-bar"></i> Sách theo danh mục</h3>
+                        <div class="chart-container">
+                            <canvas id="categoriesChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Recent Books Table -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-clock"></i> Sách mới đăng</h3>
+                        <a href="admin-books.html" class="btn btn-primary">
+                            <i class="fas fa-eye"></i> Xem tất cả
+                        </a>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="data-table" id="recentBooksTable">
+                                <thead>
+                                    <tr>
+                                        <th>STT</th>
+                                        <th> Sáách</th>
+                                        <th>Tác giả</th>
+                                        <th>Danh mục</th>
+                                        <th>Giá</th>
+                                        <th>Trạng thái</th>
+                                        <th>Ngày đăng</th>
+                                        <th>Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td>
+                                            <div class="user-cell">
+                                                <div class="book-thumb-placeholder">
+                                                    <i class="fas fa-book"></i>
+                                                </div>
+                                                <div>
+                                                    <strong>Lập Trình Laravel</strong>
+                                                    <p class="text-muted mb-0">ISBN: 978-0123456</p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>Nguyễn Văn A</td>
+                                        <td>Công nghệ thông tin</td>
+                                        <td>500 điểm</td>
+                                        <td><span class="badge-status pending">Đang chờ</span></td>
+                                        <td>16/05/2026</td>
+                                        <td>
+                                            <div class="action-btns">
+                                                <button class="action-btn view" title="Xem"><i class="fas fa-eye"></i></button>
+                                                <button class="action-btn approve" title="Duyệt"><i class="fas fa-check"></i></button>
+                                                <button class="action-btn delete" title="Xóa"><i class="fas fa-trash"></i></button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>2</td>
+                                        <td>
+                                            <div class="user-cell">
+                                                <div class="book-thumb-placeholder">
+                                                    <i class="fas fa-book"></i>
+                                                </div>
+                                                <div>
+                                                    <strong>Python Cơ Bản</strong>
+                                                    <p class="text-muted mb-0">ISBN: 978-0123457</p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>Trần Thị B</td>
+                                        <td>Khoa học</td>
+                                        <td>300 điểm</td>
+                                        <td><span class="badge-status approved">Đã duyệt</span></td>
+                                        <td>15/05/2026</td>
+                                        <td>
+                                            <div class="action-btns">
+                                                <button class="action-btn view" title="Xem"><i class="fas fa-eye"></i></button>
+                                                <button class="action-btn edit" title="Sửa"><i class="fas fa-edit"></i></button>
+                                                <button class="action-btn delete" title="Xóa"><i class="fas fa-trash"></i></button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>3</td>
+                                        <td>
+                                            <div class="user-cell">
+                                                <div class="book-thumb-placeholder">
+                                                    <i class="fas fa-book"></i>
+                                                </div>
+                                                <div>
+                                                    <strong>Marketing Online</strong>
+                                                    <p class="text-muted mb-0">ISBN: 978-0123458</p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>Lê Minh C</td>
+                                        <td>Kinh tế</td>
+                                        <td>450 điểm</td>
+                                        <td><span class="badge-status approved">Đã duyệt</span></td>
+                                        <td>14/05/2026</td>
+                                        <td>
+                                            <div class="action-btns">
+                                                <button class="action-btn view" title="Xem"><i class="fas fa-eye"></i></button>
+                                                <button class="action-btn edit" title="Sửa"><i class="fas fa-edit"></i></button>
+                                                <button class="action-btn delete" title="Xóa"><i class="fas fa-trash"></i></button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>4</td>
+                                        <td>
+                                            <div class="user-cell">
+                                                <div class="book-thumb-placeholder">
+                                                    <i class="fas fa-book"></i>
+                                                </div>
+                                                <div>
+                                                    <strong>Tiểu Thuyết Mùa Hè</strong>
+                                                    <p class="text-muted mb-0">ISBN: 978-0123459</p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>Phạm Thu D</td>
+                                        <td>Văn học</td>
+                                        <td>200 điểm</td>
+                                        <td><span class="badge-status rejected">Từ chối</span></td>
+                                        <td>13/05/2026</td>
+                                        <td>
+                                            <div class="action-btns">
+                                                <button class="action-btn view" title="Xem"><i class="fas fa-eye"></i></button>
+                                                <button class="action-btn edit" title="Sửa"><i class="fas fa-edit"></i></button>
+                                                <button class="action-btn delete" title="Xóa"><i class="fas fa-trash"></i></button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Two Column Layout -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 25px;">
+                    <!-- Recent Users -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-users"></i> Người dùng mới</h3>
+                            <a href="admin-users.html" class="btn btn-outline">Xem tất cả</a>
+                        </div>
+                        <div class="card-body">
+                            <div class="activity-list">
+                                <div class="activity-item">
+                                    <div class="activity-icon purple">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    <div class="activity-content">
+                                        <h4>Nguyễn Văn User</h4>
+                                        <p>user@example.com</p>
+                                    </div>
+                                    <span class="activity-time">5 phút trước</span>
+                                </div>
+                                <div class="activity-item">
+                                    <div class="activity-icon orange">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    <div class="activity-content">
+                                        <h4>Trần Thị Author</h4>
+                                        <p>Tác giả mới</p>
+                                    </div>
+                                    <span class="activity-time">1 giờ trước</span>
+                                </div>
+                                <div class="activity-item">
+                                    <div class="activity-icon green">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    <div class="activity-content">
+                                        <h4>Lê Minh Reader</h4>
+                                        <p>reader@example.com</p>
+                                    </div>
+                                    <span class="activity-time">3 giờ trước</span>
+                                </div>
+                                <div class="activity-item">
+                                    <div class="activity-icon blue">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    <div class="activity-content">
+                                        <h4>Phạm Thu H</h4>
+                                        <p>phamthu@example.com</p>
+                                    </div>
+                                    <span class="activity-time">5 giờ trước</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Recent Activity -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-history"></i> Hoạt động gần đây</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="activity-list">
+                                <div class="activity-item">
+                                    <div class="activity-icon green">
+                                        <i class="fas fa-download"></i>
+                                    </div>
+                                    <div class="activity-content">
+                                        <h4>Tải sách thành công</h4>
+                                        <p>Nguyễn Văn A đã tải "Lập Trình Laravel"</p>
+                                    </div>
+                                    <span class="activity-time">2 phút trước</span>
+                                </div>
+                                <div class="activity-item">
+                                    <div class="activity-icon purple">
+                                        <i class="fas fa-star"></i>
+                                    </div>
+                                    <div class="activity-content">
+                                        <h4>Đánh giá mới</h4>
+                                        <p>Trần Thị B đã đánh giá 5 sao cho "Python Cơ Bản"</p>
+                                    </div>
+                                    <span class="activity-time">15 phút trước</span>
+                                </div>
+                                <div class="activity-item">
+                                    <div class="activity-icon orange">
+                                        <i class="fas fa-comment"></i>
+                                    </div>
+                                    <div class="activity-content">
+                                        <h4>Bình luận mới</h4>
+                                        <p>Lê Minh C bình luận về "Marketing Online"</p>
+                                    </div>
+                                    <span class="activity-time">30 phút trước</span>
+                                </div>
+                                <div class="activity-item">
+                                    <div class="activity-icon blue">
+                                        <i class="fas fa-coins"></i>
+                                    </div>
+                                    <div class="activity-content">
+                                        <h4>Nạp điểm</h4>
+                                        <p>Phạm Thu D nạp 50,000 điểm</p>
+                                    </div>
+                                    <span class="activity-time">1 giờ trước</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="admin.js"></script>
+    <script>
+        // Initialize Charts
+        document.addEventListener('DOMContentLoaded', function() {
+            // Visits Chart
+            const visitsCtx = document.getElementById('visitsChart').getContext('2d');
+            new Chart(visitsCtx, {
+                type: 'line',
+                data: {
+                    labels: ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'],
+                    datasets: [{
+                        label: 'Lượt xem',
+                        data: [120, 190, 150, 200, 180, 250, 220],
+                        borderColor: '#3b368c',
+                        backgroundColor: 'rgba(59, 54, 140, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }, {
+                        label: 'Lượt tải',
+                        data: [80, 120, 90, 150, 130, 180, 160],
+                        borderColor: '#ED553B',
+                        backgroundColor: 'rgba(237, 85, 59, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    }
+                }
+            });
+            
+            // Categories Chart
+            const categoriesCtx = document.getElementById('categoriesChart').getContext('2d');
+            new Chart(categoriesCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['CNTT', 'Khoa học', 'Kinh tế', 'Văn học', 'Kỹ năng sống'],
+                    datasets: [{
+                        data: [350, 280, 200, 180, 150],
+                        backgroundColor: [
+                            '#3b368c',
+                            '#ED553B',
+                            '#28a745',
+                            '#17a2b8',
+                            '#ffc107'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

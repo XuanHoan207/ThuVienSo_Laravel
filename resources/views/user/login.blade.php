@@ -1,4 +1,4 @@
-@extends('component.layout')
+@extends('user.component.layout')
 
 @section('title', 'Đăng Nhập - Thư Viện Số')
 

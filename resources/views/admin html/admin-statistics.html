@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thống kê - Thư Viện Số Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+    <div class="admin-wrapper">
+        <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+        
+        <aside class="admin-sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo"><div class="sidebar-logo-icon"><i class="fas fa-book-open"></i></div><div class="sidebar-logo-text"><h1>Thư Viện Số</h1><span>Admin Panel</span></div></div>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section"><div class="nav-section-title">Chính</div>
+                    <div class="nav-item"><a href="admin-dashboard.html" class="nav-link"><i class="fas fa-chart-pie"></i> Dashboard</a></div>
+                    <div class="nav-item"><a href="admin-statistics.html" class="nav-link active"><i class="fas fa-chart-line"></i> Thống kê</a></div>
+                </div>
+                <div class="nav-section"><div class="nav-section-title">Quản lý nội dung</div>
+                    <div class="nav-item"><a href="admin-books.html" class="nav-link"><i class="fas fa-book"></i> Sách</a></div>
+                    <div class="nav-item"><a href="admin-categories.html" class="nav-link"><i class="fas fa-folder"></i> Danh mục</a></div>
+                    <div class="nav-item"><a href="admin-authors.html" class="nav-link"><i class="fas fa-user-pen"></i> Tác giả</a></div>
+                    <div class="nav-item"><a href="admin-publishers.html" class="nav-link"><i class="fas fa-building"></i> Nhà xuất bản</a></div>
+                </div>
+                <div class="nav-section"><div class="nav-section-title">Quản lý người dùng</div>
+                    <div class="nav-item"><a href="admin-users.html" class="nav-link"><i class="fas fa-users"></i> Người dùng</a></div>
+                    <div class="nav-item"><a href="admin-purchases.html" class="nav-link"><i class="fas fa-shopping-cart"></i> Giao dịch</a></div>
+                </div>
+                <div class="nav-section"><div class="nav-section-title">Kiểm duyệt</div>
+                    <div class="nav-item"><a href="admin-comments.html" class="nav-link"><i class="fas fa-comments"></i> Bình luận</a></div>
+                    <div class="nav-item"><a href="admin-reports.html" class="nav-link"><i class="fas fa-flag"></i> Báo cáo vi phạm <span class="badge badge-danger">5</span></a></div>
+                </div>
+                <div class="nav-section"><div class="nav-section-title">Hệ thống</div>
+                    <div class="nav-item"><a href="admin-notifications.html" class="nav-link"><i class="fas fa-bell"></i> Thông báo</a></div>
+                    <div class="nav-item"><a href="admin-settings.html" class="nav-link"><i class="fas fa-cog"></i> Cài đặt</a></div>
+                </div>
+            </nav>
+        </aside>
+        
+        <main class="admin-main">
+            <header class="admin-header">
+                <div class="header-left">
+                    <button class="mobile-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+                    <div><h2>Thống kê Báo cáo</h2><div class="breadcrumb"><a href="admin-dashboard.html">Admin</a><i class="fas fa-chevron-right"></i><span>Thống kê</span></div></div>
+                </div>
+                <div class="header-right">
+                    <div class="user-dropdown"><div class="user-avatar">AD</div><div class="user-info"><h4>Admin</h4><span>Quản trị viên</span></div></div>
+                </div>
+            </header>
+            
+            <div class="admin-content">
+                <div class="stats-grid">
+                    <div class="stat-card purple"><span class="stat-change up"><i class="fas fa-arrow-up"></i> 12%</span><div class="stat-icon"><i class="fas fa-book"></i></div><div class="stat-content"><h3>1,248</h3><p>Tổng sách</p></div></div>
+                    <div class="stat-card orange"><span class="stat-change up"><i class="fas fa-arrow-up"></i> 8%</span><div class="stat-icon"><i class="fas fa-users"></i></div><div class="stat-content"><h3>5,678</h3><p>Người dùng</p></div></div>
+                    <div class="stat-card green"><span class="stat-change up"><i class="fas fa-arrow-up"></i> 25%</span><div class="stat-icon"><i class="fas fa-download"></i></div><div class="stat-content"><h3>18,432</h3><p>Lượt tải</p></div></div>
+                    <div class="stat-card blue"><span class="stat-change down"><i class="fas fa-arrow-down"></i> 3%</span><div class="stat-icon"><i class="fas fa-eye"></i></div><div class="stat-content"><h3>89,321</h3><p>Lượt xem</p></div></div>
+                </div>
+                
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <h3><i class="fas fa-chart-area"></i> Lượt truy cập theo ngày</h3>
+                        <div class="chart-container"><canvas id="dailyChart"></canvas></div>
+                    </div>
+                    <div class="chart-card">
+                        <h3><i class="fas fa-chart-bar"></i> Top 10 sách được tải nhiều nhất</h3>
+                        <div class="chart-container"><canvas id="topBooksChart"></canvas></div>
+                    </div>
+                </div>
+                
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <h3><i class="fas fa-chart-pie"></i> Phân bố người dùng theo vai trò</h3>
+                        <div class="chart-container"><canvas id="usersRoleChart"></canvas></div>
+                    </div>
+                    <div class="chart-card">
+                        <h3><i class="fas fa-coins"></i> Doanh thu theo tháng</h3>
+                        <div class="chart-container"><canvas id="revenueChart"></canvas></div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-trophy"></i> Top Tác giả xuất sắc</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead><tr><th>Hạng</th><th>Tác giả</th><th>Số sách</th><th>Lượt tải</th><th>Đánh giá TB</th><th>Doanh thu</th></tr></thead>
+                                <tbody>
+                                    <tr><td><span style="color: gold;"><i class="fas fa-medal"></i> 1</span></td><td><div class="user-cell"><div class="user-thumb-placeholder">NA</div><strong>Nguyễn Văn A</strong></div></td><td>45</td><td>12,345</td><td><span style="color: #ffc107;"><i class="fas fa-star"></i> 4.8</span></td><td>2,500,000 đ</td></tr>
+                                    <tr><td><span style="color: silver;"><i class="fas fa-medal"></i> 2</span></td><td><div class="user-cell"><div class="user-thumb-placeholder">TT</div><strong>Trần Thị B</strong></div></td><td>32</td><td>9,876</td><td><span style="color: #ffc107;"><i class="fas fa-star"></i> 4.6</span></td><td>1,800,000 đ</td></tr>
+                                    <tr><td><span style="color: #cd7f32;"><i class="fas fa-medal"></i> 3</span></td><td><div class="user-cell"><div class="user-thumb-placeholder">LM</div><strong>Lê Minh C</strong></div></td><td>28</td><td>7,654</td><td><span style="color: #ffc107;"><i class="fas fa-star"></i> 4.5</span></td><td>1,500,000 đ</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="admin.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Daily Visits Chart
+            new Chart(document.getElementById('dailyChart').getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'],
+                    datasets: [{
+                        label: 'Lượt xem',
+                        data: [1200, 1900, 1500, 2000, 1800, 2500, 2200],
+                        borderColor: '#3b368c',
+                        backgroundColor: 'rgba(59, 54, 140, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+            
+            // Top Books Chart
+            new Chart(document.getElementById('topBooksChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Laravel', 'Python', 'JavaScript', 'AI', 'Marketing'],
+                    datasets: [{
+                        label: 'Lượt tải',
+                        data: [1500, 1200, 900, 800, 600],
+                        backgroundColor: ['#3b368c', '#ED553B', '#28a745', '#17a2b8', '#ffc107']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+            
+            // Users Role Chart
+            new Chart(document.getElementById('usersRoleChart').getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Người dùng', 'Tác giả', 'Admin'],
+                    datasets: [{ data: [5500, 156, 5], backgroundColor: ['#ED553B', '#3b368c', '#28a745'] }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+            
+            // Revenue Chart
+            new Chart(document.getElementById('revenueChart').getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5'],
+                    datasets: [{
+                        label: 'Doanh thu (triệu đ)',
+                        data: [45, 52, 48, 65, 78],
+                        borderColor: '#ED553B',
+                        backgroundColor: 'rgba(237, 85, 59, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        });
+    </script>
+</body>
+</html>

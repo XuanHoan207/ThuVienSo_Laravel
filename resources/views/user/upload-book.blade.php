@@ -1,4 +1,4 @@
-﻿@extends('component.layout')
+﻿@extends('user.component.layout')
 
 @section('title', 'Đăng Sách Mới - Thư Viện Số')
 
@@ -11,7 +11,7 @@
 @endpush
 
 @section('content')
-    @include('component.header')
+    @include('user.component.header')
 
     <!-- Page Header -->
     <div class="bg-light py-4">
@@ -284,6 +284,6 @@
     </section>
 
     <!-- Footer -->
-    @include('component.footer')
+    @include('user.component.footer')
 @endsection
 

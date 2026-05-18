@@ -1,9 +1,9 @@
-@extends('component.layout')
+@extends('user.component.layout')
 
 @section('title', 'Giới Thiệu - Thư Viện Số')
 
 @section('content')
-    @include('component.header')
+    @include('user.component.header')
 
     <!-- Page Header -->
     <div class="bg-light py-3">
@@ -145,5 +145,5 @@
         </div>
     </section>
 
-    @include('component.footer')
+    @include('user.component.footer')
 @endsection

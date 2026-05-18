@@ -1,4 +1,4 @@
-@extends('component.layout')
+@extends('user.component.layout')
 
 @section('title', 'Tài Khoản - Thư Viện Số')
 
@@ -7,7 +7,7 @@
 @endpush
 
 @section('content')
-    @include('component.header')
+    @include('user.component.header')
 
     <!-- Dashboard Section -->
     <section class="py-5 bg-light">
@@ -556,5 +556,5 @@
         </div>
     </section>
 
-    @include('component.footer')
+    @include('user.component.footer')
 @endsection

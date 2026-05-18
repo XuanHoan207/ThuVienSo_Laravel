@@ -1,9 +1,9 @@
-@extends('component.layout')
+@extends('user.component.layout')
 
 @section('title', 'Trang Chủ - Thư Viện Số')
 
 @section('content')
-    @include('component.header')
+    @include('user.component.header')
 
     <!-- Section 3: Single Image Carousel -->
     <div id="bookCarousel" class="carousel slide" data-bs-ride="carousel">
@@ -217,5 +217,5 @@
         </div>
     </section>
 
-    @include('component.footer')
+    @include('user.component.footer')
 @endsection

@@ -1,4 +1,4 @@
-﻿@extends('component.layout')
+﻿@extends('user.component.layout')
 
 @section('title', 'Chi Tiết Sách - Thư Viện Số')
 
@@ -11,7 +11,7 @@
 @endpush
 
 @section('content')
-    @include('component.header')
+    @include('user.component.header')
 
     <!-- Book Details Section -->
     <section class="py-5">
@@ -593,6 +593,6 @@
     </section>
 
     <!-- Footer -->
-    @include('component.footer')
+    @include('user.component.footer')
 @endsection
 

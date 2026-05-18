@@ -1,4 +1,4 @@
-﻿@extends('component.layout')
+﻿@extends('user.component.layout')
 
 @section('title', 'Chi Tiết Tác Giả - Thư Viện Số')
 
@@ -7,7 +7,7 @@
 @endpush
 
 @section('content')
-    @include('component.header')
+    @include('user.component.header')
 
     <!-- Author Cover -->
     <div class="author-cover"></div>
@@ -370,6 +370,6 @@
     </section>
 
     <!-- Footer -->
-    @include('component.footer')
+    @include('user.component.footer')
 @endsection
 
