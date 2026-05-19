@@ -62,7 +62,6 @@ The Laravel framework is open-sourced software licensed under the [MIT license](
 
 ### `php artisan migrate`
 
-
 ### `php artisan migrate:status`
 
 ### `php artisan db:seed`
@@ -79,4 +78,13 @@ chạy Laravel backend <br>
 ### `npm run dev`
 
 chạy Vite frontend <br>
+
+Test vnpay
+Ngân hàng:  	NCB
+Số thẻ:     	9704198526191432198
+Tên chủ thẻ:	NGUYEN VAN A
+Ngày phát hành:	07/15
+Mật khẩu OTP:	123456
+
+
 
