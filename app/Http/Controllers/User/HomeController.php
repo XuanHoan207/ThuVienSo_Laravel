@@ -8,6 +8,7 @@ use App\Models\Category;
 use App\Models\Tag;
 use App\Models\Slider;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class HomeController extends Controller
 {
@@ -44,9 +45,18 @@ class HomeController extends Controller
             ->limit(6)
             ->get();
 
-        $trendingTags = Tag::withCount(['books' => function ($query) {
-            $query->where('status', 'approved');
-        }])->orderBy('books_count', 'desc')->limit(10)->get();
+        $trendingTags = DB::table('tags')
+            ->leftJoin('book_tag', 'tags.id', '=', 'book_tag.tag_id')
+            ->leftJoin('books', function ($join) {
+                $join->on('book_tag.book_id', '=', 'books.id')
+                    ->where('books.status', 'approved')
+                    ->whereNull('books.deleted_at');
+            })
+            ->select('tags.id', 'tags.name', 'tags.slug', 'tags.color', 'tags.created_at', 'tags.updated_at', DB::raw('COUNT(DISTINCT books.id) as books_count'))
+            ->groupBy('tags.id', 'tags.name', 'tags.slug', 'tags.color', 'tags.created_at', 'tags.updated_at')
+            ->orderBy('books_count', 'desc')
+            ->limit(10)
+            ->get();
 
         $sliders = Slider::active()->get();
 

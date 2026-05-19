@@ -1,0 +1,1070 @@
+# KẾ HOẠCH CHI TIẾT - ADMIN PANEL
+## Thư Viện Số - Digital Library
+
+---
+
+## 1. CẤU TRÚC ADMIN
+
+### 1.1 Thư mục & Files cần tạo:
+
+```
+app/
+├── Http/
+│   └── Controllers/
+│       └── Admin/
+│           ├── DashboardController.php
+│           ├── BookController.php
+│           ├── AuthorController.php
+│           ├── CategoryController.php
+│           ├── PublisherController.php
+│           ├── UserController.php
+│           ├── OrderController.php
+│           ├── ReportController.php
+│           ├── CommentController.php
+│           ├── SliderController.php
+│           ├── SettingController.php
+│           └── TagController.php
+├── Models/
+│   └── Admin/ (nếu cần)
+├── Requests/
+│   └── Admin/
+│       ├── StoreBookRequest.php
+│       ├── UpdateBookRequest.php
+│       ├── StoreAuthorRequest.php
+│       └── ...
+├── Resources/
+│   └── Admin/ (API Resources nếu cần)
+resources/
+└── views/
+    └── admin/
+        ├── layouts/
+        │   ├── master.blade.php
+        │   ├── sidebar.blade.php
+        │   └── header.blade.php
+        ├── dashboard/
+        │   └── index.blade.php
+        ├── books/
+        │   ├── index.blade.php
+        │   ├── create.blade.php
+        │   └── edit.blade.php
+        ├── authors/
+        │   ├── index.blade.php
+        │   ├── create.blade.php
+        │   └── edit.blade.php
+        ├── categories/
+        │   ├── index.blade.php
+        │   ├── create.blade.php
+        │   └── edit.blade.php
+        ├── publishers/
+        │   ├── index.blade.php
+        │   ├── create.blade.php
+        │   └── edit.blade.php
+        ├── tags/
+        │   ├── index.blade.php
+        │   ├── create.blade.php
+        │   └── edit.blade.php
+        ├── users/
+        │   ├── index.blade.php
+        │   └── edit.blade.php
+        ├── orders/
+        │   └── index.blade.php
+        ├── reports/
+        │   └── index.blade.php
+        ├── comments/
+        │   └── index.blade.php
+        ├── sliders/
+        │   ├── index.blade.php
+        │   ├── create.blade.php
+        │   └── edit.blade.php
+        └── settings/
+            └── index.blade.php
+routes/
+└── admin.php (routes riêng cho admin)
+public/
+└── admin/ (CSS, JS riêng cho admin)
+```
+
+### 1.2 Routes Admin:
+
+```php
+// Admin routes prefix: /admin
+// Middleware: auth, admin (role=admin)
+
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    
+    // Books
+    Route::resource('books', BookController::class);
+    Route::patch('/books/{id}/approve', [BookController::class, 'approve'])->name('books.approve');
+    Route::patch('/books/{id}/reject', [BookController::class, 'reject'])->name('books.reject');
+    
+    // Authors
+    Route::resource('authors', AuthorController::class);
+    
+    // Categories
+    Route::resource('categories', CategoryController::class);
+    
+    // Publishers
+    Route::resource('publishers', PublisherController::class);
+    
+    // Tags
+    Route::resource('tags', TagController::class);
+    
+    // Users
+    Route::resource('users', UserController::class);
+    Route::patch('/users/{id}/ban', [UserController::class, 'ban'])->name('users.ban');
+    Route::patch('/users/{id}/unban', [UserController::class, 'unban'])->name('users.unban');
+    Route::patch('/users/{id}/role', [UserController::class, 'updateRole'])->name('users.role');
+    
+    // Orders
+    Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+    Route::patch('/orders/{id}/status', [OrderController::class, 'updateStatus'])->name('orders.status');
+    
+    // Reports
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+    Route::patch('/reports/{id}/resolve', [ReportController::class, 'resolve'])->name('reports.resolve');
+    Route::patch('/reports/{id}/reject', [ReportController::class, 'reject'])->name('reports.reject');
+    
+    // Comments
+    Route::get('/comments', [CommentController::class, 'index'])->name('comments.index');
+    Route::patch('/comments/{id}/approve', [CommentController::class, 'approve'])->name('comments.approve');
+    Route::delete('/comments/{id}', [CommentController::class, 'destroy'])->name('comments.destroy');
+    
+    // Sliders
+    Route::resource('sliders', SliderController::class);
+    
+    // Settings
+    Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
+    Route::post('/settings', [SettingController::class, 'store'])->name('settings.store');
+    
+    // Statistics
+    Route::get('/statistics', [DashboardController::class, 'statistics'])->name('statistics');
+    Route::get('/statistics/export', [DashboardController::class, 'export'])->name('statistics.export');
+});
+```
+
+---
+
+## 2. DASHBOARD (dashboard.blade.php)
+
+### Tình trạng: Cần tạo mới hoàn toàn
+
+### Yêu cầu từ Trang 1:
+
+#### Backend - DashboardController@index:
+
+##### Stats Cards:
+- [ ] Đếm tổng users: `User::count()` (trừ admin)
+- [ ] Đếm tổng books: `Book::count()`
+- [ ] Đếm tổng authors: `Author::count()`
+- [ ] Tính doanh thu tháng: `PointsTransaction::whereMonth('created_at', now())->sum('amount')`
+- [ ] So sánh với tháng trước (percentage change)
+
+##### Chart Revenue (6 tháng):
+- [ ] Query: PointsTransaction::where between 6 months ago và now
+- [ ] Group by month
+- [ ] Return data cho Chart.js hoặc ApexCharts
+
+##### Top 10 Books (view_count cao nhất):
+- [ ] `Book::orderBy('view_count', 'desc')->limit(10)->with('category')->get()`
+- [ ] Hiển thị: title, category, view_count, download_count
+
+##### Book Publishing Requests (chờ duyệt):
+- [ ] `Book::where('status', 'pending')->with('user')->paginate(5)`
+- [ ] Hiển thị: title, user, created_at, action buttons
+
+##### Recent Orders:
+- [ ] `Purchase::with('user', 'book')->latest()->limit(5)->get()`
+- [ ] Hiển thị: order_id, user, book, points, created_at
+
+#### Frontend - Dashboard Layout:
+- [ ] Sidebar menu (collapsible)
+- [ ] Top header với user info, notifications
+- [ ] Stats cards với icons và trend indicators
+- [ ] Revenue chart (line chart, 6 months)
+- [ ] Tables: top books, pending requests, recent orders
+- [ ] Quick actions: Add book, View reports
+
+#### URL & Route:
+```php
+Route::get('/admin/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
+```
+
+---
+
+## 3. QUẢN LÝ SÁCH (books/index.blade.php)
+
+### Tình trạng: Cần tạo mới hoàn toàn
+
+### Yêu cầu từ Trang 2:
+
+#### Backend - BookController:
+
+##### index():
+- [ ] Query: `Book::with('category', 'authors', 'user')->latest()`
+- [ ] Filters:
+  - `whereHas('category', fn $q => $q->where('slug', $request->category))`
+  - `whereHas('authors', fn $q => $q->where('slug', $request->author))`
+  - `where('status', $request->status)` (pending, approved, rejected, hidden)
+  - `whereDate('created_at', '>=', $request->from_date)`
+  - `whereDate('created_at', '<=', $request->to_date)`
+- [ ] Search: `where('title', 'LIKE', "%{$request->search}%")`
+- [ ] Paginate: 15 per page
+- [ ] Sort by: orderBy($request->sort ?? 'created_at', $request->direction ?? 'desc')
+
+##### create():
+- [ ] Return view với form
+- [ ] Pass: categories, authors, publishers, tags
+
+##### store(StoreBookRequest $request):
+- [ ] Validate request
+- [ ] Upload thumbnail: `storage/app/public/covers/`
+- [ ] Upload file: `storage/app/public/books/`
+- [ ] Generate slug from title
+- [ ] Calculate file_size từ uploaded file
+- [ ] Determine file_type từ extension
+- [ ] Create book với status (mặc định 'pending' hoặc từ form)
+- [ ] Sync authors: `book->authors()->sync($request->author_ids)`
+- [ ] Sync tags: `book->tags()->sync($request->tag_ids)`
+- [ ] Flash message
+
+##### edit($id):
+- [ ] `Book::findOrFail($id)` với relationships
+- [ ] Pass: book, categories, authors, publishers, tags
+
+##### update(UpdateBookRequest $request, $id):
+- [ ] Find book
+- [ ] Update fields
+- [ ] Update file nếu có upload mới
+- [ ] Sync authors và tags
+- [ ] Flash message
+
+##### destroy($id):
+- [ ] Soft delete hoặc force delete
+- [ ] Xóa related records (book_author, book_tag)
+- [ ] Flash message
+
+##### approve($id):
+- [ ] `Book::findOrFail($id)`
+- [ ] Update status = 'approved'
+- [ ] Create notification cho uploader
+- [ ] Flash message
+
+##### reject($id):
+- [ ] `Book::findOrFail($id)`
+- [ ] Update status = 'rejected'
+- [ ] Create notification cho uploader
+- [ ] Flash message
+
+#### Frontend - List View:
+- [ ] Search input
+- [ ] Filters: Category dropdown, Author dropdown, Status dropdown, Date range
+- [ ] Table columns:
+  - Checkbox (bulk select)
+  - ID
+  - Ảnh bìa (thumbnail)
+  - Tên sách (title)
+  - Tác giả (authors)
+  - Thể loại (category)
+  - Giá (price_points)
+  - Lượt xem (view_count)
+  - Lượt tải (download_count)
+  - Trạng thái (status badge: pending=yellow, approved=green, rejected=red, hidden=gray)
+  - Ngày tạo (created_at)
+  - Thao tác (actions: Edit, Delete, Approve/Reject button)
+- [ ] Bulk actions: Delete selected, Approve selected
+- [ ] Pagination
+- [ ] Add New Book button
+
+#### Frontend - Create/Edit Form (từ Trang 3):
+- [ ] Tên sách (required)
+- [ ] Mô tả (textarea, rich editor optional)
+- [ ] Thể loại (select, required)
+- [ ] Tác giả (multi-select searchable)
+- [ ] Nhà xuất bản (select)
+- [ ] Năm xuất bản (number)
+- [ ] Số trang (number)
+- [ ] Ngôn ngữ (text)
+- [ ] ISBN (text)
+- [ ] Giá (number, default 0)
+- [ ] Tags (multi-select)
+- [ ] Ảnh bìa (file upload, preview)
+- [ ] File sách (file upload: pdf, epub)
+- [ ] Trạng thái (select: pending, approved, rejected, hidden)
+- [ ] Submit button
+
+#### URL & Routes:
+```php
+Route::get('/admin/books', [BookController::class, 'index'])->name('admin.books.index');
+Route::get('/admin/books/create', [BookController::class, 'create'])->name('admin.books.create');
+Route::post('/admin/books', [BookController::class, 'store'])->name('admin.books.store');
+Route::get('/admin/books/{id}/edit', [BookController::class, 'edit'])->name('admin.books.edit');
+Route::put('/admin/books/{id}', [BookController::class, 'update'])->name('admin.books.update');
+Route::delete('/admin/books/{id}', [BookController::class, 'destroy'])->name('admin.books.destroy');
+Route::patch('/admin/books/{id}/approve', [BookController::class, 'approve'])->name('admin.books.approve');
+Route::patch('/admin/books/{id}/reject', [BookController::class, 'reject'])->name('admin.books.reject');
+```
+
+---
+
+## 4. QUẢN LÝ TÁC GIẢ (authors/index.blade.php)
+
+### Tình trạng: Cần tạo mới hoàn toàn
+
+### Yêu cầu từ Trang 4:
+
+#### Backend - AuthorController:
+
+##### index():
+- [ ] `Author::withCount('books')->latest()`
+- [ ] Search: `where('name', 'LIKE', "%{$request->search}%")`
+- [ ] Paginate: 15 per page
+
+##### store(StoreAuthorRequest $request):
+- [ ] Validate: name, slug, email (unique), website
+- [ ] Upload avatar: `storage/app/public/authors/`
+- [ ] Create author
+- [ ] Flash message
+
+##### update(UpdateAuthorRequest $request, $id):
+- [ ] Find author
+- [ ] Update fields
+- [ ] Update avatar nếu có upload mới
+- [ ] Flash message
+
+##### destroy($id):
+- [ ] Check có sách không -> không cho xóa nếu có sách
+- [ ] Soft delete
+- [ ] Flash message
+
+#### Frontend - List View:
+- [ ] Search input
+- [ ] Table columns:
+  - ID
+  - Ảnh (avatar)
+  - Tên tác giả (name)
+  - Email
+  - Số sách (books_count)
+  - Ngày tạo (created_at)
+  - Thao tác (Edit, Delete)
+- [ ] Add New Author button
+
+#### Frontend - Create/Edit Form:
+- [ ] Tên tác giả (required)
+- [ ] Slug (auto-generate, editable)
+- [ ] Email
+- [ ] Website
+- [ ] Bio (textarea)
+- [ ] Avatar (file upload, preview)
+
+#### URL & Routes:
+```php
+Route::resource('/admin/authors', AuthorController::class)->names('admin.authors');
+```
+
+---
+
+## 5. QUẢN LÝ THỂ LOẠI (categories/index.blade.php)
+
+### Tình trạnh: Cần tạo mới hoàn toàn
+
+### Yêu cầu từ Trang 4 & 5:
+
+#### Backend - CategoryController:
+
+##### index():
+- [ ] `Category::withCount('books')->with('parent')->latest()`
+- [ ] Search
+- [ ] Paginate
+
+##### store(StoreCategoryRequest $request):
+- [ ] Validate: name, slug, parent_id (nullable)
+- [ ] Upload icon/image
+- [ ] Create category
+- [ ] Flash message
+
+##### update(UpdateCategoryRequest $request, $id):
+- [ ] Find category
+- [ ] Update fields
+- [ ] Prevent circular parent reference
+- [ ] Flash message
+
+##### destroy($id):
+- [ ] Check có sách không
+- [ ] Xử lý children categories (move to parent null)
+- [ ] Soft delete
+- [ ] Flash message
+
+#### Frontend - List View:
+- [ ] Search input
+- [ ] Table columns:
+  - ID
+  - Icon (hoặc hình ảnh)
+  - Tên thể loại (name)
+  - Slug
+  - Mô tả (description - truncated)
+  - Số sách (books_count)
+  - Ngày tạo (created_at)
+  - Thao tác (Edit, Delete)
+- [ ] Add New Category button
+- [ ] Nested category display (parent > child)
+
+#### Frontend - Create/Edit Form:
+- [ ] Tên thể loại (required)
+- [ ] Slug (auto-generate)
+- [ ] Icon (file upload hoặc icon picker)
+- [ ] Parent category (select, nullable - cho phép nested)
+- [ ] Description (textarea)
+- [ ] Order (number)
+
+#### URL & Routes:
+```php
+Route::resource('/admin/categories', CategoryController::class)->names('admin.categories');
+```
+
+---
+
+## 6. QUẢN LÝ NHÀ XUẤT BẢN (publishers/index.blade.php)
+
+### Tình trạng: Cần tạo mới hoàn toàn
+
+### Yêu cầu từ Trang 4:
+
+#### Backend - PublisherController:
+
+##### index():
+- [ ] `Publisher::latest()`
+- [ ] Search
+- [ ] Paginate
+
+##### store(StorePublisherRequest $request):
+- [ ] Validate: name, slug
+- [ ] Upload logo
+- [ ] Create publisher
+
+##### update(UpdatePublisherRequest $request, $id):
+- [ ] Find publisher
+- [ ] Update fields
+
+##### destroy($id):
+- [ ] Check có sách không
+- [ ] Soft delete
+
+#### Frontend - List View:
+- [ ] Search input
+- [ ] Table columns:
+  - ID
+  - Logo
+  - Tên nhà xuất bản (name)
+  - Website
+  - Ngày tạo (created_at)
+  - Thao tác (Edit, Delete)
+- [ ] Add New Publisher button
+
+#### Frontend - Create/Edit Form:
+- [ ] Tên nhà xuất bản (required)
+- [ ] Slug (auto-generate)
+- [ ] Logo (file upload, preview)
+- [ ] Website
+- [ ] Info (textarea)
+
+#### URL & Routes:
+```php
+Route::resource('/admin/publishers', PublisherController::class)->names('admin.publishers');
+```
+
+---
+
+## 7. QUẢN LÝ TAGS (tags/index.blade.php)
+
+### Tình trạng: Cần tạo mới hoàn toàn
+
+#### Backend - TagController:
+
+##### index():
+- [ ] `Tag::withCount('books')->latest()`
+- [ ] Search
+- [ ] Paginate
+
+##### store(StoreTagRequest $request):
+- [ ] Validate: name, slug, color
+- [ ] Create tag
+
+##### update(UpdateTagRequest $request, $id):
+- [ ] Find tag
+- [ ] Update fields
+
+##### destroy($id):
+- [ ] Soft delete
+
+#### Frontend:
+- [ ] Table: ID, Name, Slug, Color (badge), Books count, Actions
+- [ ] Form: Name, Slug, Color picker
+
+#### URL & Routes:
+```php
+Route::resource('/admin/tags', TagController::class)->names('admin.tags');
+```
+
+---
+
+## 8. QUẢN LÝ NGƯỜI DÙNG (users/index.blade.php)
+
+### Tình trạng: Cần tạo mới hoàn toàn
+
+### Yêu cầu từ Trang 6:
+
+#### Backend - UserController:
+
+##### index():
+- [ ] `User::latest()->where('role', '!=', 'admin')` (hoặc show all)
+- [ ] Search: name, email
+- [ ] Filter by role (user, author)
+- [ ] Filter by status (active, banned)
+- [ ] Paginate
+
+##### edit($id):
+- [ ] `User::findOrFail($id)`
+- [ ] Pass: user
+
+##### update(UpdateUserRequest $request, $id):
+- [ ] Validate
+- [ ] Update fields
+- [ ] Flash message
+
+##### updateRole($id):
+- [ ] Update user role (user, author)
+- [ ] Flash message
+
+##### ban($id):
+- [ ] `User::findOrFail($id)`
+- [ ] `user->status = 0`
+- [ ] `user->save()`
+- [ ] Create notification
+- [ ] Flash message
+
+##### unban($id):
+- [ ] `User::findOrFail($id)`
+- [ ] `user->status = 1`
+- [ ] Flash message
+
+##### destroy($id):
+- [ ] Soft delete user
+- [ ] Flash message
+
+#### Frontend - List View:
+- [ ] Search input
+- [ ] Filters: Role dropdown, Status dropdown
+- [ ] Table columns:
+  - ID
+  - Ảnh (avatar)
+  - Tên (name)
+  - Email
+  - Vai trò (role badge: user=blue, author=purple)
+  - Điểm (points)
+  - Ngày tham gia (created_at)
+  - Trạng thái (status badge: active=green, banned=red)
+  - Thao tác (Edit, Delete, Ban/Unban button, Set Role button)
+- [ ] Export users button
+
+#### Frontend - Edit Form:
+- [ ] Name
+- [ ] Email
+- [ ] Role (select)
+- [ ] Points (number - admin có thể cộng/trừ điểm)
+- [ ] Status (checkbox)
+- [ ] Avatar upload
+- [ ] Phone
+- [ ] Address
+- [ ] Bio
+
+#### URL & Routes:
+```php
+Route::resource('/admin/users', UserController::class)->names('admin.users');
+Route::patch('/admin/users/{id}/ban', [UserController::class, 'ban'])->name('admin.users.ban');
+Route::patch('/admin/users/{id}/unban', [UserController::class, 'unban'])->name('admin.users.unban');
+Route::patch('/admin/users/{id}/role', [UserController::class, 'updateRole'])->name('admin.users.role');
+```
+
+---
+
+## 9. QUẢN LÝ ĐƠN HÀNG (orders/index.blade.php)
+
+### Tình trạng: Cần tạo mới hoàn toàn
+
+### Yêu cầu từ Trang 6:
+
+#### Backend - OrderController:
+
+##### index():
+- [ ] `Purchase::with('user', 'book')->latest()`
+- [ ] Search: user name, book title
+- [ ] Filter by payment_type (points, free, promotion)
+- [ ] Filter by status (pending, completed, cancelled)
+- [ ] Filter by date range
+- [ ] Paginate
+
+##### updateStatus($id):
+- [ ] `Purchase::findOrFail($id)`
+- [ ] Update status
+- [ ] Nếu cancelled: refund points cho user
+- [ ] Flash message
+
+#### Frontend - List View:
+- [ ] Search input
+- [ ] Filters: Payment type, Status, Date range
+- [ ] Table columns:
+  - ID
+  - Người dùng (user name, email)
+  - Sách (book title)
+  - Số tiền (price_paid points)
+  - Phương thức (payment_type badge)
+  - Trạng thái (status badge)
+  - Ngày (created_at)
+  - Thao tác (Update Status dropdown)
+- [ ] Stats: Total orders, Total revenue, Completed orders
+
+#### Status Update Actions:
+- [ ] Pending -> Completed (manual approve)
+- [ ] Pending -> Cancelled (refund)
+- [ ] Completed -> Refunded (refund)
+
+#### URL & Routes:
+```php
+Route::get('/admin/orders', [OrderController::class, 'index'])->name('admin.orders.index');
+Route::patch('/admin/orders/{id}/status', [OrderController::class, 'updateStatus'])->name('admin.orders.status');
+```
+
+---
+
+## 10. QUẢN LÝ BÁO CÁO/PHẢN HỒI (reports/index.blade.php)
+
+### Tình trạng: Cần tạo mới hoàn toàn
+
+### Yêu cầu từ Trang 6:
+
+#### Backend - ReportController:
+
+##### index():
+- [ ] `Report::with('user', 'book')->latest()`
+- [ ] Filter by type (copyright, inappropriate, broken_link, other)
+- [ ] Filter by status (pending, resolved, rejected)
+- [ ] Paginate
+
+##### view($id):
+- [ ] `Report::findOrFail($id)` với relationships
+
+##### resolve($id):
+- [ ] `Report::findOrFail($id)`
+- [ ] Update status = 'resolved'
+- [ ] Set admin_note
+- [ ] Xử lý vi phạm (hide book, ban user, etc.)
+- [ ] Create notification cho reporter
+- [ ] Flash message
+
+##### reject($id):
+- [ ] `Report::findOrFail($id)`
+- [ ] Update status = 'rejected'
+- [ ] Flash message
+
+#### Frontend - List View:
+- [ ] Filters: Type dropdown, Status dropdown
+- [ ] Table columns:
+  - ID
+  - Người báo cáo (user name, nullable)
+  - Sách (book title, link to admin book edit)
+  - Loại vi phạm (type badge)
+  - Nội dung (reason - truncated)
+  - Trạng thái (status badge)
+  - Ngày (created_at)
+  - Thao tác (View, Resolve, Reject)
+
+#### Report Detail Modal:
+- [ ] Full report content
+- [ ] Book info (link to edit)
+- [ ] User info (link to edit)
+- [ ] Resolve/Reject buttons with note input
+- [ ] Resolution history
+
+#### URL & Routes:
+```php
+Route::get('/admin/reports', [ReportController::class, 'index'])->name('admin.reports.index');
+Route::patch('/admin/reports/{id}/resolve', [ReportController::class, 'resolve'])->name('admin.reports.resolve');
+Route::patch('/admin/reports/{id}/reject', [ReportController::class, 'reject'])->name('admin.reports.reject');
+```
+
+---
+
+## 11. QUẢN LÝ BÌNH LUẬN (comments/index.blade.php)
+
+### Tình trạng: Cần tạo mới hoàn toàn
+
+### Yêu cầu từ Trang 6:
+
+#### Backend - CommentController:
+
+##### index():
+- [ ] `Comment::with('user', 'book')->latest()`
+- [ ] Filter by status (pending, approved, rejected)
+- [ ] Filter by book
+- [ ] Paginate
+
+##### approve($id):
+- [ ] `Comment::findOrFail($id)`
+- [ ] Update status = 'approved'
+- [ ] Flash message
+
+##### destroy($id):
+- [ ] Soft delete comment
+- [ ] Flash message
+
+#### Frontend - List View:
+- [ ] Filters: Status dropdown, Book dropdown
+- [ ] Table columns:
+  - ID
+  - Người bình luận (user name, avatar)
+  - Sách (book title, link)
+  - Nội dung (content - truncated)
+  - Trạng thái (status badge)
+  - Ngày (created_at)
+  - Thao tác (Approve, Delete)
+- [ ] Bulk delete selected
+
+#### URL & Routes:
+```php
+Route::get('/admin/comments', [CommentController::class, 'index'])->name('admin.comments.index');
+Route::patch('/admin/comments/{id}/approve', [CommentController::class, 'approve'])->name('admin.comments.approve');
+Route::delete('/admin/comments/{id}', [CommentController::class, 'destroy'])->name('admin.comments.destroy');
+```
+
+---
+
+## 12. QUẢN LÝ SLIDER (sliders/index.blade.php)
+
+### Tình trạng: Cần tạo mới hoàn toàn
+
+### Yêu cầu từ Trang 6:
+
+#### Backend - SliderController:
+
+##### index():
+- [ ] `Slider::orderBy('order')->get()`
+- [ ] Pass to view
+
+##### store(StoreSliderRequest $request):
+- [ ] Validate: title, image, order, status
+- [ ] Upload image: `storage/app/public/sliders/`
+- [ ] Create slider
+
+##### update(UpdateSliderRequest $request, $id):
+- [ ] Find slider
+- [ ] Update fields
+- [ ] Update image nếu có
+
+##### destroy($id):
+- [ ] Delete slider
+- [ ] Delete image file
+- [ ] Flash message
+
+#### Frontend - List View:
+- [ ] Table columns:
+  - ID
+  - Hình ảnh (image preview)
+  - Tiêu đề (title)
+  - Liên kết (link)
+  - Thứ tự (order)
+  - Trạng thái (status toggle)
+  - Thao tác (Edit, Delete)
+- [ ] Drag & drop reorder (optional - dùng jQuery UI hoặc SortableJS)
+- [ ] Add New Slider button
+
+#### Frontend - Create/Edit Form:
+- [ ] Tiêu đề (title)
+- [ ] Phụ đề (subtitle)
+- [ ] Hình ảnh (file upload, preview, recommended size)
+- [ ] Liên kết (link URL)
+- [ ] Text liên kết (link_text)
+- [ ] Thứ tự (order number)
+- [ ] Trạng thái (checkbox: active/inactive)
+
+#### URL & Routes:
+```php
+Route::resource('/admin/sliders', SliderController::class)->names('admin.sliders');
+```
+
+---
+
+## 13. QUẢN LÝ CÀI ĐẶT (settings/index.blade.php)
+
+### Tình trạng: Cần tạo mới hoàn toàn
+
+### Yêu cầu từ Trang 6:
+
+#### Backend - SettingController:
+
+##### index():
+- [ ] `Setting::all()->groupBy('group')`
+- [ ] Pass to view
+
+##### store(Request $request):
+- [ ] Loop through settings
+- [ ] Update or create each setting
+- [ ] Clear config cache
+- [ ] Flash message
+
+#### Settings Groups:
+- **General**: site_name, site_description, site_logo, favicon
+- **Contact**: contact_email, contact_phone, contact_address
+- **Points**: points_rate, min_recharge, bonus_rates
+- **Upload**: max_upload_size, allowed_file_types
+- **Social**: social_links (facebook, google, etc.)
+- **Email**: mail_host, mail_port, mail_username, etc.
+
+#### Frontend - Settings Form:
+- [ ] Tabs hoặc accordion theo groups
+- [ ] General:
+  - Tên website (text)
+  - Mô tả website (textarea)
+  - Logo (file upload)
+  - Favicon (file upload)
+- [ ] Contact:
+  - Email liên hệ (email)
+  - Số điện thoại (text)
+  - Địa chỉ (textarea)
+- [ ] Points:
+  - Tỷ lệ quy đổi (1000 VND = X points)
+  - Số điểm nạp tối thiểu
+  - Tỷ lệ bonus theo gói
+- [ ] Upload:
+  - Kích thước file tối đa
+  - Loại file cho phép
+- [ ] Social:
+  - Facebook URL
+  - Google URL
+  - etc.
+
+#### URL & Routes:
+```php
+Route::get('/admin/settings', [SettingController::class, 'index'])->name('admin.settings.index');
+Route::post('/admin/settings', [SettingController::class, 'store'])->name('admin.settings.store');
+```
+
+---
+
+## 14. MIDDLEWARE & AUTH
+
+### 14.1 Admin Middleware:
+
+```php
+// app/Http/Middleware/EnsureUserIsAdmin.php
+public function handle($request, Closure $next) {
+    if (auth()->check() && auth()->user()->role === 'admin') {
+        return $next($request);
+    }
+    return redirect('/')->with('error', 'Access denied.');
+}
+```
+
+### 14.2 Đăng ký Middleware:
+
+```php
+// bootstrap/app.php hoặc Kernel.php
+Route::middleware(['auth', 'admin'])->prefix('admin')->group(base_path('routes/admin.php'));
+```
+
+---
+
+## 15. HELPER FUNCTIONS & TRAITS
+
+### 15.1 AdminHelper Trait:
+
+```php
+// app/Traits/AdminHelper.php
+trait AdminHelper {
+    // Format currency
+    // Format date
+    // Get status badge HTML
+    // Generate slug
+    // Upload file helpers
+}
+```
+
+### 15.2 Blade Directives:
+
+```php
+// AppServiceProvider
+Blade::if('admin', function () {
+    return auth()->check() && auth()->user()->role === 'admin';
+});
+```
+
+---
+
+## 16. ADMIN CSS/JS
+
+### 16.1 Admin CSS (public/admin/css/):
+- [ ] adminlte.css hoặc custom admin theme
+- [ ] custom-admin.css (override/styling riêng)
+- [ ] fonts: Font Awesome, etc.
+
+### 16.2 Admin JS (public/admin/js/):
+- [ ] adminlte.js hoặc custom
+- [ ] functions.js (custom admin functions)
+- [ ] AJAX setup (CSRF token)
+
+### 16.3 Features cần có:
+- [ ] Sidebar menu collapsible
+- [ ] Toast notifications (success, error, warning)
+- [ ] Confirm dialogs before delete
+- [ ] Loading overlay
+- [ ] Form validation
+- [ ] Image preview before upload
+
+---
+
+## 17. PRIORITIES (ƯU TIÊN THỰC HIỆN)
+
+### Phase 1: Foundation (Admin Layout & Auth)
+1. [ ] Tạo admin layout (master.blade.php, sidebar, header)
+2. [ ] Tạo Admin middleware
+3. [ ] Setup routes admin
+4. [ ] Dashboard layout với stats cards
+
+### Phase 2: Core CRUD
+5. [ ] Quản lý Books (CRUD + approve/reject)
+6. [ ] Quản lý Categories
+7. [ ] Quản lý Authors
+8. [ ] Quản lý Publishers
+9. [ ] Quản lý Tags
+
+### Phase 3: User Management
+10. [ ] Quản lý Users (CRUD + ban/unban)
+11. [ ] Quản lý Orders
+
+### Phase 4: Moderation
+12. [ ] Quản lý Reports (resolve/reject)
+13. [ ] Quản lý Comments (approve/delete)
+14. [ ] Quản lý Sliders
+
+### Phase 5: Settings & Dashboard
+15. [ ] Dashboard charts & data
+16. [ ] Settings management
+17. [ ] Activity logs view
+
+### Phase 6: Polish
+18. [ ] Export functionality (PDF, Excel)
+19. [ ] Bulk actions
+20. [ ] Notifications system for admins
+21. [ ] Audit logs
+
+---
+
+## 18. NOTES
+
+### Database Tables liên quan:
+- `users` - quản lý user (role, status, points)
+- `books` - quản lý sách (status: pending/approved/rejected/hidden)
+- `categories` - quản lý thể loại
+- `authors` - quản lý tác giả
+- `publishers` - quản lý nhà xuất bản
+- `tags` - quản lý tags
+- `purchases` - đơn hàng
+- `reports` - báo cáo vi phạm
+- `comments` - bình luận (status: pending/approved/rejected)
+- `sliders` - banner quảng cáo
+- `settings` - cài đặt website
+- `activity_logs` - logs hoạt động
+- `notifications` - thông báo
+- `points_transactions` - giao dịch điểm
+
+### Security:
+- Admin routes phải có middleware `auth` và `admin`
+- CSRF protection cho tất cả forms
+- XSS prevention (sanitize input/output)
+- Validate file uploads (type, size)
+- Rate limiting cho sensitive actions
+
+### Performance:
+- Eager loading relationships
+- Pagination (15-20 items per page)
+- Cache stats dashboard
+- Index cho common queries
+
+### Integration với User:
+- Khi admin approve/reject book -> tạo notification cho user
+- Khi admin ban/unban user -> tạo notification
+- Khi admin resolve report -> tạo notification cho reporter
+
+---
+
+## 19. CHECKLIST IMPLEMENTATION
+
+### Dashboard:
+- [ ] Stats: total_users, total_books, total_authors, monthly_revenue
+- [ ] Revenue chart (6 months)
+- [ ] Top 10 books by views
+- [ ] Pending book requests
+- [ ] Recent orders
+
+### Books Management:
+- [ ] List view với filters
+- [ ] Create/Edit form
+- [ ] Approve/Reject actions
+- [ ] Bulk actions
+- [ ] Search
+
+### Categories Management:
+- [ ] Nested categories support
+- [ ] Icon/Image upload
+- [ ] Reorder
+
+### Authors Management:
+- [ ] CRUD operations
+- [ ] Avatar upload
+
+### Publishers Management:
+- [ ] CRUD operations
+- [ ] Logo upload
+
+### Tags Management:
+- [ ] CRUD operations
+- [ ] Color picker
+
+### Users Management:
+- [ ] List view với filters
+- [ ] Edit user details
+- [ ] Ban/Unban
+- [ ] Update role
+- [ ] Adjust points
+
+### Orders Management:
+- [ ] List view
+- [ ] Update status
+- [ ] Refund handling
+
+### Reports Management:
+- [ ] List view
+- [ ] View details
+- [ ] Resolve/Reject
+- [ ] Action logging
+
+### Comments Management:
+- [ ] List view
+- [ ] Approve/Delete
+- [ ] Bulk actions
+
+### Sliders Management:
+- [ ] CRUD operations
+- [ ] Reorder
+- [ ] Image upload
+
+### Settings:
+- [ ] General settings
+- [ ] Contact settings
+- [ ] Points settings
+- [ ] Upload settings
+- [ ] Social settings
+
+---
+
+End of Plan

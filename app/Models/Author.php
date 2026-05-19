@@ -32,16 +32,16 @@ class Author extends Model
         });
     }
 
-    public function books(): HasMany
-    {
-        return $this->hasMany(Book::class, 'author_id');
-    }
-
-    public function authoredBooks(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    public function books(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
         return $this->belongsToMany(Book::class, 'book_author')
             ->withPivot('role')
             ->withTimestamps();
+    }
+
+    public function authoredBooks(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->books();
     }
 
     public function getBooksCountAttribute(): int

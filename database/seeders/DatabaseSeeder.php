@@ -17,6 +17,15 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
+        // Tài khoản Admin
+        User::factory()->create([
+            'name' => 'Admin',
+            'email' => 'admin@thuvienso.com',
+            'role' => 'admin',
+            'password' => bcrypt('admin123'),
+        ]);
+
+        // User test
         User::factory()->create([
             'name' => 'Test User',
             'email' => 'test@example.com',

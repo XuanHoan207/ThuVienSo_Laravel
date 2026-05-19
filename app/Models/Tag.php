@@ -37,12 +37,12 @@ class Tag extends Model
     public function activeBooks(): BelongsToMany
     {
         return $this->belongsToMany(Book::class, 'book_tag')
-            ->wherePivot('status', 'approved')
+            ->wherePivotIn('status', ['approved', null])
             ->withTimestamps();
     }
 
     public function getBooksCountAttribute(): int
     {
-        return $this->books()->where('books.status', 'approved')->count();
+        return $this->books()->where('books.status', 'approved')->whereNull('books.deleted_at')->count();
     }
 }

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Author;
 use App\Models\Book;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class AuthorController extends Controller
 {
@@ -24,7 +25,8 @@ class AuthorController extends Controller
             $query->where('name', 'LIKE', $request->letter . '%');
         }
 
-        $authors = $query->withCount('authoredBooks')
+        $authors = $query
+            ->withCount('authoredBooks')
             ->orderBy('name')
             ->paginate(12);
 

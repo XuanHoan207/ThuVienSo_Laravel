@@ -65,6 +65,9 @@ The Laravel framework is open-sourced software licensed under the [MIT license](
 
 ### `php artisan migrate:status`
 
+### `php artisan db:seed`
+
+Tạo tài khoản Admin <br>
 
 ## cách chạy file 
 
@@ -76,3 +79,4 @@ chạy Laravel backend <br>
 ### `npm run dev`
 
 chạy Vite frontend <br>
+

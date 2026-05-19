@@ -17,6 +17,11 @@ Route::post('/contact', [App\Http\Controllers\User\ContactController::class, 'su
 // Books Routes
 Route::get('/books', [App\Http\Controllers\User\BookController::class, 'index'])->name('books.index');
 Route::get('/books/{slug}', [App\Http\Controllers\User\BookController::class, 'show'])->name('books.show');
+Route::get('/books/{id}/read', [App\Http\Controllers\User\BookReaderController::class, 'show'])->name('books.read');
+Route::get('/books/{id}/preview', [App\Http\Controllers\User\BookReaderController::class, 'preview'])->name('books.preview');
+Route::get('/books/{id}/preview-pdf', [App\Http\Controllers\User\BookReaderController::class, 'previewPdf'])->name('books.preview_pdf');
+Route::post('/books/{id}/read/progress', [App\Http\Controllers\User\BookReaderController::class, 'updateProgress'])->name('books.read.progress');
+Route::get('/books/{id}/read/page', [App\Http\Controllers\User\BookReaderController::class, 'getPage'])->name('books.read.page');
 
 // Authors Routes
 Route::get('/authors', [App\Http\Controllers\User\AuthorController::class, 'index'])->name('authors.index');
@@ -55,17 +60,18 @@ Route::middleware('auth')->group(function () {
 
     // Account Routes
     Route::get('/my-account', [App\Http\Controllers\User\AccountController::class, 'index'])->name('account.index');
-    Route::patch('/profile', [App\Http\Controllers\User\AccountController::class, 'updateProfile'])->name('profile.update');
-    Route::patch('/password', [App\Http\Controllers\User\AccountController::class, 'changePassword'])->name('password.change');
+    Route::patch('/my-profile', [App\Http\Controllers\User\AccountController::class, 'updateProfile'])->name('user.profile.update');
+    Route::patch('/my-password', [App\Http\Controllers\User\AccountController::class, 'changePassword'])->name('user.password.change');
 
     // Recharge Routes
     Route::get('/recharge', [App\Http\Controllers\User\RechargeController::class, 'index'])->name('recharge');
     Route::post('/recharge', [App\Http\Controllers\User\RechargeController::class, 'process'])->name('recharge.process');
     Route::get('/recharge/callback', [App\Http\Controllers\User\RechargeController::class, 'callback'])->name('recharge.callback');
+    Route::get('/recharge/vnpay-return', [App\Http\Controllers\User\RechargeController::class, 'vnpayReturn'])->name('recharge.vnpay_return');
 
     // Upload Book Routes
-    Route::get('/upload-book', [App\Http\Controllers\User\UploadBookController::class, 'create'])->name('books.upload');
-    Route::post('/upload-book', [App\Http\Controllers\User\UploadBookController::class, 'store'])->name('books.store');
+    Route::get('/upload-book', [App\Http\Controllers\User\UploadBookController::class, 'create'])->name('user.books.upload');
+    Route::post('/upload-book', [App\Http\Controllers\User\UploadBookController::class, 'store'])->name('user.books.store');
 
     // Book Actions (AJAX)
     Route::post('/books/{id}/wishlist', [App\Http\Controllers\User\BookActionController::class, 'toggleWishlist'])->name('books.wishlist');
@@ -81,20 +87,43 @@ Route::middleware('auth')->group(function () {
 |--------------------------------------------------------------------------
 */
 
-Route::prefix('admin')->group(function () {
-    Route::get('/dashboard', function () { return view('admin.dashboard'); })->name('admin.dashboard');
-    Route::get('/books', function () { return view('admin.books'); })->name('admin.books');
-    Route::get('/books/create', function () { return view('admin.books-create'); })->name('admin.books.create');
-    Route::get('/books/edit/{id}', function ($id) { return view('admin.books-edit', compact('id')); })->name('admin.books.edit');
-    Route::get('/authors', function () { return view('admin.authors'); })->name('admin.authors');
-    Route::get('/categories', function () { return view('admin.categories'); })->name('admin.categories');
-    Route::get('/reviews', function () { return view('admin.reviews'); })->name('admin.reviews');
-    Route::get('/orders', function () { return view('admin.orders'); })->name('admin.orders');
-    Route::get('/transactions', function () { return view('admin.transactions'); })->name('admin.transactions');
-    Route::get('/users', function () { return view('admin.users'); })->name('admin.users');
-    Route::get('/admins', function () { return view('admin.admins'); })->name('admin.admins');
-    Route::get('/notifications', function () { return view('admin.notifications'); })->name('admin.notifications');
-    Route::get('/reports', function () { return view('admin.reports'); })->name('admin.reports');
-    Route::get('/settings', function () { return view('admin.settings'); })->name('admin.settings');
-    Route::get('/profile', function () { return view('admin.profile'); })->name('admin.profile');
+Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(function () {
+    Route::get('/dashboard', [App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
+    Route::resource('books', App\Http\Controllers\Admin\BookController::class);
+    Route::patch('/books/{id}/approve', [App\Http\Controllers\Admin\BookController::class, 'approve'])->name('books.approve');
+    Route::patch('/books/{id}/reject', [App\Http\Controllers\Admin\BookController::class, 'reject'])->name('books.reject');
+    Route::resource('authors', App\Http\Controllers\Admin\AuthorController::class);
+    Route::resource('categories', App\Http\Controllers\Admin\CategoryController::class);
+    Route::resource('publishers', App\Http\Controllers\Admin\PublisherController::class);
+    Route::resource('tags', App\Http\Controllers\Admin\TagController::class);
+    Route::resource('sliders', App\Http\Controllers\Admin\SliderController::class);
+    Route::resource('users', App\Http\Controllers\Admin\UserController::class);
+    Route::patch('/users/{id}/ban', [App\Http\Controllers\Admin\UserController::class, 'ban'])->name('users.ban');
+    Route::patch('/users/{id}/unban', [App\Http\Controllers\Admin\UserController::class, 'unban'])->name('users.unban');
+    Route::patch('/users/{id}/role', [App\Http\Controllers\Admin\UserController::class, 'updateRole'])->name('users.role');
+    Route::get('/users/export', [App\Http\Controllers\Admin\UserController::class, 'export'])->name('users.export');
+    Route::get('/orders', [App\Http\Controllers\Admin\OrderController::class, 'index'])->name('orders.index');
+    Route::patch('/orders/{id}/status', [App\Http\Controllers\Admin\OrderController::class, 'updateStatus'])->name('orders.status');
+    Route::get('/reports', [App\Http\Controllers\Admin\ReportController::class, 'index'])->name('reports.index');
+    Route::patch('/reports/{id}/resolve', [App\Http\Controllers\Admin\ReportController::class, 'resolve'])->name('reports.resolve');
+    Route::patch('/reports/{id}/reject', [App\Http\Controllers\Admin\ReportController::class, 'reject'])->name('reports.reject');
+    Route::get('/comments', [App\Http\Controllers\Admin\CommentController::class, 'index'])->name('comments.index');
+    Route::get('/reviews', [App\Http\Controllers\Admin\CommentController::class, 'index'])->name('reviews.index');
+    Route::patch('/comments/{id}/approve', [App\Http\Controllers\Admin\CommentController::class, 'approve'])->name('comments.approve');
+    Route::delete('/comments/{id}', [App\Http\Controllers\Admin\CommentController::class, 'destroy'])->name('comments.destroy');
+    Route::get('/transactions', [App\Http\Controllers\Admin\TransactionController::class, 'index'])->name('transactions.index');
+    Route::get('/settings', [App\Http\Controllers\Admin\SettingController::class, 'index'])->name('settings.index');
+    Route::post('/settings', [App\Http\Controllers\Admin\SettingController::class, 'store'])->name('settings.store');
+    Route::get('/notifications', [App\Http\Controllers\Admin\NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications', [App\Http\Controllers\Admin\NotificationController::class, 'store'])->name('notifications.store');
+    Route::get('/admins', [App\Http\Controllers\Admin\AdminController::class, 'index'])->name('admins.index');
+    Route::post('/admins', [App\Http\Controllers\Admin\AdminController::class, 'store'])->name('admins.store');
+    Route::get('/profile', [App\Http\Controllers\Admin\ProfileController::class, 'index'])->name('profile');
+    Route::put('/profile', [App\Http\Controllers\Admin\ProfileController::class, 'update'])->name('profile.update');
+    Route::put('/password', [App\Http\Controllers\Admin\ProfileController::class, 'updatePassword'])->name('password.update');
+    Route::get('/contacts', [App\Http\Controllers\Admin\ContactController::class, 'index'])->name('contacts.index');
+    Route::get('/contacts/{id}', [App\Http\Controllers\Admin\ContactController::class, 'show'])->name('contacts.show');
+    Route::post('/contacts/{id}/reply', [App\Http\Controllers\Admin\ContactController::class, 'reply'])->name('contacts.reply');
+    Route::post('/contacts/{id}/mark-read', [App\Http\Controllers\Admin\ContactController::class, 'markAsRead'])->name('contacts.markRead');
+    Route::delete('/contacts/{id}', [App\Http\Controllers\Admin\ContactController::class, 'destroy'])->name('contacts.destroy');
 });

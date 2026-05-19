@@ -18,7 +18,7 @@
             <p class="nav-section-title">Tổng quan</p>
             <ul class="nav flex-column">
                 <li class="nav-item">
-                    <a class="nav-link {{ Request::is('admin') || Request::is('admin/dashboard') ? 'active' : '' }}" href="{{ url('/admin/dashboard') }}">
+                    <a class="nav-link {{ Request::is('admin') || Request::is('admin/dashboard') ? 'active' : '' }}" href="{{ route('admin.dashboard') }}">
                         <i class="bi bi-speedometer2"></i>
                         <span>Dashboard</span>
                     </a>
@@ -30,27 +30,72 @@
             <p class="nav-section-title">Quản lý</p>
             <ul class="nav flex-column">
                 <li class="nav-item">
-                    <a class="nav-link {{ Request::is('admin/books') || Request::is('admin/books/*') ? 'active' : '' }}" href="{{ url('/admin/books') }}">
+                    <a class="nav-link {{ Request::is('admin/books*') ? 'active' : '' }}" href="{{ route('admin.books.index') }}">
                         <i class="bi bi-book"></i>
                         <span>Quản lý Sách</span>
+                        @if(isset($pendingBooksCount) && $pendingBooksCount > 0)
+                            <span class="badge bg-warning text-dark float-end">{{ $pendingBooksCount }}</span>
+                        @endif
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {{ Request::is('admin/authors') || Request::is('admin/authors/*') ? 'active' : '' }}" href="{{ url('/admin/authors') }}">
+                    <a class="nav-link {{ Request::is('admin/authors*') ? 'active' : '' }}" href="{{ route('admin.authors.index') }}">
                         <i class="bi bi-person-badge"></i>
                         <span>Quản lý Tác giả</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {{ Request::is('admin/categories') || Request::is('admin/categories/*') ? 'active' : '' }}" href="{{ url('/admin/categories') }}">
+                    <a class="nav-link {{ Request::is('admin/categories*') ? 'active' : '' }}" href="{{ route('admin.categories.index') }}">
                         <i class="bi bi-grid"></i>
                         <span>Danh mục</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {{ Request::is('admin/reviews') || Request::is('admin/reviews/*') ? 'active' : '' }}" href="{{ url('/admin/reviews') }}">
-                        <i class="bi bi-star"></i>
-                        <span>Đánh giá</span>
+                    <a class="nav-link {{ Request::is('admin/publishers*') ? 'active' : '' }}" href="{{ route('admin.publishers.index') }}">
+                        <i class="bi bi-building"></i>
+                        <span>Nhà xuất bản</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ Request::is('admin/tags*') ? 'active' : '' }}" href="{{ route('admin.tags.index') }}">
+                        <i class="bi bi-tags"></i>
+                        <span>Tags</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ Request::is('admin/sliders*') ? 'active' : '' }}" href="{{ route('admin.sliders.index') }}">
+                        <i class="bi bi-image"></i>
+                        <span>Sliders</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="nav-section">
+            <p class="nav-section-title">Kiểm duyệt</p>
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link {{ Request::is('admin/reviews') || Request::is('admin/comments') ? 'active' : '' }}" href="{{ route('admin.comments.index') }}">
+                        <i class="bi bi-chat-dots"></i>
+                        <span>Bình luận</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ Request::is('admin/reports*') ? 'active' : '' }}" href="{{ route('admin.reports.index') }}">
+                        <i class="bi bi-flag"></i>
+                        <span>Báo cáo</span>
+                        @if(isset($pendingReportsCount) && $pendingReportsCount > 0)
+                            <span class="badge bg-danger float-end">{{ $pendingReportsCount }}</span>
+                        @endif
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ Request::is('admin/contacts*') ? 'active' : '' }}" href="{{ route('admin.contacts.index') }}">
+                        <i class="bi bi-envelope"></i>
+                        <span>Liên hệ</span>
+                        @if(isset($unreadContactsCount) && $unreadContactsCount > 0)
+                            <span class="badge bg-warning text-dark float-end">{{ $unreadContactsCount }}</span>
+                        @endif
                     </a>
                 </li>
             </ul>
@@ -60,13 +105,13 @@
             <p class="nav-section-title">Đơn hàng & Giao dịch</p>
             <ul class="nav flex-column">
                 <li class="nav-item">
-                    <a class="nav-link {{ Request::is('admin/orders') || Request::is('admin/orders/*') ? 'active' : '' }}" href="{{ url('/admin/orders') }}">
+                    <a class="nav-link {{ Request::is('admin/orders*') ? 'active' : '' }}" href="{{ route('admin.orders.index') }}">
                         <i class="bi bi-cart3"></i>
                         <span>Đơn hàng</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {{ Request::is('admin/transactions') || Request::is('admin/transactions/*') ? 'active' : '' }}" href="{{ url('/admin/transactions') }}">
+                    <a class="nav-link {{ Request::is('admin/transactions*') ? 'active' : '' }}" href="{{ route('admin.transactions.index') }}">
                         <i class="bi bi-wallet2"></i>
                         <span>Giao dịch</span>
                     </a>
@@ -78,13 +123,13 @@
             <p class="nav-section-title">Người dùng</p>
             <ul class="nav flex-column">
                 <li class="nav-item">
-                    <a class="nav-link {{ Request::is('admin/users') || Request::is('admin/users/*') ? 'active' : '' }}" href="{{ url('/admin/users') }}">
+                    <a class="nav-link {{ Request::is('admin/users*') ? 'active' : '' }}" href="{{ route('admin.users.index') }}">
                         <i class="bi bi-people"></i>
                         <span>Người dùng</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {{ Request::is('admin/admins') || Request::is('admin/admins/*') ? 'active' : '' }}" href="{{ url('/admin/admins') }}">
+                    <a class="nav-link {{ Request::is('admin/admins*') ? 'active' : '' }}" href="{{ route('admin.admins.index') }}">
                         <i class="bi bi-person-gear"></i>
                         <span>Quản trị viên</span>
                     </a>
@@ -96,19 +141,13 @@
             <p class="nav-section-title">Hệ thống</p>
             <ul class="nav flex-column">
                 <li class="nav-item">
-                    <a class="nav-link {{ Request::is('admin/notifications') || Request::is('admin/notifications/*') ? 'active' : '' }}" href="{{ url('/admin/notifications') }}">
+                    <a class="nav-link {{ Request::is('admin/notifications*') ? 'active' : '' }}" href="{{ route('admin.notifications.index') }}">
                         <i class="bi bi-bell"></i>
                         <span>Thông báo</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {{ Request::is('admin/reports') || Request::is('admin/reports/*') ? 'active' : '' }}" href="{{ url('/admin/reports') }}">
-                        <i class="bi bi-flag"></i>
-                        <span>Báo cáo</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {{ Request::is('admin/settings') || Request::is('admin/settings/*') ? 'active' : '' }}" href="{{ url('/admin/settings') }}">
+                    <a class="nav-link {{ Request::is('admin/settings*') ? 'active' : '' }}" href="{{ route('admin.settings.index') }}">
                         <i class="bi bi-gear"></i>
                         <span>Cài đặt</span>
                     </a>
@@ -123,9 +162,12 @@
             <i class="bi bi-box-arrow-up-right"></i>
             <span>Xem website</span>
         </a>
-        <a href="{{ url('/logout') }}" class="nav-link text-danger">
+        <a href="{{ route('logout') }}" class="nav-link text-danger" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
             <i class="bi bi-box-arrow-left"></i>
             <span>Đăng xuất</span>
         </a>
+        <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+            @csrf
+        </form>
     </div>
 </aside>

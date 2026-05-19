@@ -29,6 +29,12 @@ body {
     background-color: var(--orange-primary) !important;
 }
 
+/* Make .bg-primary match the template's primary color */
+.bg-primary {
+    background-color: var(--orange-primary) !important;
+    color: white !important;
+}
+
 /* Button Styles */
 .btn-orange {
     background-color: var(--orange-primary);
@@ -193,6 +199,56 @@ body {
 /* Offer Section */
 .offer-section {
     background-color: #f8f9fa;
+}
+
+/* Profile header and gradient utilities (project primary theme) */
+.profile-header {
+    background: linear-gradient(135deg, var(--orange-primary) 0%, var(--orange-light) 100%);
+    color: white;
+}
+
+/* Gradient utility classes */
+.bg-gradient-primary {
+    background: linear-gradient(135deg, var(--orange-primary) 0%, var(--orange-light) 100%) !important;
+    color: white !important;
+}
+.bg-gradient-success {
+    background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%) !important;
+    color: white !important;
+}
+.bg-gradient-warning {
+    background: linear-gradient(135deg, #ffb74d 0%, #ff8d4c 100%) !important;
+    color: white !important;
+}
+
+/* Account sidebar navigation */
+.account-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.5rem;
+}
+.account-nav .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.65rem 0.75rem;
+    color: #333;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: var(--transition);
+}
+.account-nav .nav-item i {
+    font-size: 1.1rem;
+    color: var(--orange-primary);
+}
+.account-nav .nav-item .badge {
+    margin-left: auto;
+}
+.account-nav .nav-item:hover,
+.account-nav .nav-item.active {
+    background: rgba(255,112,67,0.08);
+    color: var(--orange-primary);
 }
 
 /* Wishlist Button Animation */

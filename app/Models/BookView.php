@@ -12,6 +12,8 @@ class BookView extends Model
 
     protected $table = 'book_views';
 
+    public $timestamps = false;
+
     protected $fillable = [
         'book_id',
         'user_id',

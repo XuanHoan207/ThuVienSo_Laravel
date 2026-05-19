@@ -3,11 +3,11 @@
 @section('title', 'Giới Thiệu - Thư Viện Số')
 
 @push('styles')
-    @vite('resources/css/about.css')
+    @vite('resources/views/user/about/about.css')
 @endpush
 
 @push('scripts')
-    @vite('resources/js/about.js')
+    @vite('resources/views/user/about/about.js')
 @endpush
 
 @section('content')

@@ -157,15 +157,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Form submission
-    const uploadForm = document.getElementById('uploadForm');
-    if (uploadForm) {
-        uploadForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            alert('Sách của bạn đã được đăng tải thành công! Sách sẽ được kiểm duyệt trong 24-48 giờ.');
-            window.location.href = 'my-account.html';
-        });
-    }
 });
 
 function removeFile() {

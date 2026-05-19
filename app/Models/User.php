@@ -100,6 +100,11 @@ class User extends Authenticatable
         return $this->hasMany(BookView::class);
     }
 
+    public function bookReadProgress(): HasMany
+    {
+        return $this->hasMany(BookReadProgress::class);
+    }
+
     public function contactMessages(): HasMany
     {
         return $this->hasMany(ContactMessage::class);

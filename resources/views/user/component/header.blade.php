@@ -34,13 +34,11 @@
                             </span>
                         @endif
                     </a>
-                    <a href="{{ route('cart') }}" class="nav-link position-relative">
+                    <a href="{{ route('cart') }}" class="nav-link position-relative" id="cartLink">
                         <i class="bi bi-cart"></i> Giỏ hàng
-                        @if(session()->has('cart') && count(session()->get('cart', [])) > 0)
-                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary" style="font-size: 0.6rem;">
-                                {{ count(session()->get('cart', [])) }}
-                            </span>
-                        @endif
+                        <span id="cartBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary" style="font-size: 0.6rem; {{ !session()->has('cart') || count(session()->get('cart', [])) == 0 ? 'display: none;' : '' }}">
+                            {{ count(session()->get('cart', [])) }}
+                        </span>
                     </a>
                     <a href="{{ route('wishlist') }}" class="nav-link"><i class="bi bi-heart"></i> Yêu thích</a>
                     <div class="dropdown">
@@ -48,8 +46,8 @@
                             <i class="bi bi-person-circle"></i> {{ auth()->user()->name }}
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="{{ route('account.index') }}"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
-                            <li><a class="dropdown-item" href="{{ route('profile.update') }}"><i class="bi bi-person me-2"></i>Hồ sơ</a></li>
+                        <li><a class="dropdown-item" href="{{ route('account.index') }}"><i class="bi bi-person me-2"></i>Hồ sơ</a></li>
+                            <li><a class="dropdown-item" href="{{ route('user.books.upload') }}"><i class="bi bi-upload me-2"></i>Đăng sách mới</a></li>
                             <li><a class="dropdown-item" href="{{ route('recharge') }}"><i class="bi bi-wallet2 me-2"></i>Nạp điểm ({{ number_format(auth()->user()->points) }})</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li>
@@ -70,6 +68,20 @@
             </button>
         </div>
     </nav>
+
+    <!-- Toast Container -->
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999; margin-top: 80px;">
+        <div id="cartToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true" data-bs-delay="3000">
+            <div class="toast-header">
+                <i class="bi bi-cart-check text-success me-2"></i>
+                <strong class="me-auto">Thông báo</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body" id="cartToastMessage">
+                Đã thêm vào giỏ hàng!
+            </div>
+        </div>
+    </div>
 
     <!-- Nav Links -->
     <div class="nav-links border-top">
@@ -93,3 +105,47 @@
             </ul>
         </div>
     </div>
+
+    <!-- Cart AJAX Handler -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const cartForm = document.getElementById('purchaseForm');
+            const cartBadge = document.getElementById('cartBadge');
+            const cartToast = document.getElementById('cartToast');
+            const toastMessage = document.getElementById('cartToastMessage');
+
+            if (cartForm) {
+                cartForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+
+                    const formData = new FormData(cartForm);
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+                    fetch('{{ route('cart.add') }}', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': csrfToken,
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json',
+                        },
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Update cart badge
+                            const currentCount = parseInt(cartBadge.textContent) || 0;
+                            const newCount = currentCount + 1;
+                            cartBadge.textContent = newCount;
+                            cartBadge.style.display = 'block';
+
+                            // Show toast
+                            toastMessage.textContent = data.message || 'Đã thêm vào giỏ hàng!';
+                            const toast = new bootstrap.Toast(cartToast);
+                            toast.show();
+                        }
+                    });
+                });
+            }
+        });
+    </script>

@@ -33,7 +33,7 @@ class UploadBookController extends Controller
             'price_points' => 'required|integer|min:0',
             'book_file' => 'required|file|mimes:pdf,epub,mobi|max:51200',
             'thumbnail' => 'nullable|image|max:5120',
-            'isbn' => 'nullable|string|max:20',
+            'isbn' => 'nullable|string|max:20|unique:books,isbn',
             'published_year' => 'nullable|integer|min:1900|max:' . date('Y'),
             'pages' => 'nullable|integer|min:1',
             'language' => 'nullable|string|max:50',
@@ -49,10 +49,18 @@ class UploadBookController extends Controller
             $thumbnailPath = $request->file('thumbnail')->store('covers', 'public');
         }
 
+        // Generate unique slug
+        $slug = Str::slug($request->title);
+        $originalSlug = $slug;
+        $count = 1;
+        while (Book::where('slug', $slug)->exists()) {
+            $slug = $originalSlug . '-' . $count++;
+        }
+
         // Create book
         $book = Book::create([
             'title' => $request->title,
-            'slug' => Str::slug($request->title),
+            'slug' => $slug,
             'isbn' => $request->isbn,
             'thumbnail' => $thumbnailPath,
             'file_path' => $filePath,
@@ -71,9 +79,7 @@ class UploadBookController extends Controller
 
         // Attach authors
         if ($request->has('authors') && is_array($request->authors)) {
-            foreach ($request->authors as $authorId => $role) {
-                $book->authors()->attach($authorId, ['role' => $role]);
-            }
+            $book->authors()->sync($request->authors);
         }
 
         // Attach tags
@@ -90,6 +96,6 @@ class UploadBookController extends Controller
         //     'link' => route('admin.books.show', $book->id),
         // ]);
 
-        return redirect()->route('my-account')->with('success', 'Sách đã được đăng tải thành công! Sách của bạn sẽ được kiểm duyệt trong 24-48 giờ.');
+        return redirect()->to('/my-account')->with('success', 'Sách đã được đăng tải thành công! Sách của bạn sẽ được kiểm duyệt trong 24-48 giờ.');
     }
 }

@@ -3,11 +3,77 @@
 @section('title', 'Tài Khoản Của Tôi - Thư Viện Số')
 
 @push('styles')
-    @vite('resources/css/my-account.css')
-@endpush
-
-@push('scripts')
-    @vite('resources/js/my-account.js')
+<link rel="stylesheet" href="{{ asset('resources/css/my-account.css') }}">
+<style>
+.account-nav .nav-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    color: #333;
+    text-decoration: none;
+    border-bottom: 1px solid #eee;
+    transition: all 0.2s;
+    background: white;
+}
+.account-nav .nav-item:hover {
+    background: #fff3e0;
+    color: #ff7043;
+    text-decoration: none;
+}
+.account-nav .nav-item.active {
+    background: linear-gradient(135deg, #ff7043 0%, #ff5722 100%);
+    color: white;
+}
+.account-nav .nav-item i {
+    width: 24px;
+    margin-right: 12px;
+    font-size: 1.1rem;
+}
+.account-nav .nav-item span {
+    flex: 1;
+}
+.account-nav .nav-item .badge {
+    margin-left: auto;
+}
+.tab-pane {
+    display: none;
+}
+.tab-pane.show,
+.tab-pane.active {
+    display: block;
+}
+.book-card {
+    border: 1px solid #eee;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+    background: white;
+}
+.book-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.book-card .book-cover {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+}
+.book-card .book-info {
+    padding: 12px;
+}
+.stat-card {
+    transition: transform 0.2s;
+}
+.stat-card:hover {
+    transform: translateY(-3px);
+}
+.profile-header {
+    background: linear-gradient(135deg, #ff8a65 0%, #ff7043 100%);
+}
+.profile-header h6 {
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+</style>
 @endpush
 
 @section('content')
@@ -29,47 +95,66 @@
     <section class="container py-5">
         <div class="row">
             <!-- Sidebar -->
-            <div class="col-lg-3">
-                <div class="list-group account-nav">
-                    <a href="#dashboard" class="list-group-item list-group-item-action active">
-                        <i class="bi bi-speedometer2 me-2"></i>Dashboard
-                    </a>
-                    <a href="#profile" class="list-group-item list-group-item-action">
-                        <i class="bi bi-person me-2"></i>Hồ sơ
-                    </a>
-                    <a href="#purchases" class="list-group-item list-group-item-action">
-                        <i class="bi bi-bag me-2"></i>Sách đã mua
-                    </a>
-                    <a href="#downloads" class="list-group-item list-group-item-action">
-                        <i class="bi bi-download me-2"></i>Tải về
-                    </a>
-                    <a href="#favorites" class="list-group-item list-group-item-action">
-                        <i class="bi bi-heart me-2"></i>Yêu thích
-                    </a>
-                    <a href="#mybooks" class="list-group-item list-group-item-action">
-                        <i class="bi bi-book me-2"></i>Sách của tôi
-                    </a>
-                    <a href="{{ route('recharge') }}" class="list-group-item list-group-item-action">
-                        <i class="bi bi-wallet2 me-2"></i>Nạp điểm
-                    </a>
-                    <a href="{{ url('/notifications') }}" class="list-group-item list-group-item-action">
-                        <i class="bi bi-bell me-2"></i>Thông báo
-                    </a>
-                    <a href="#security" class="list-group-item list-group-item-action">
-                        <i class="bi bi-shield-lock me-2"></i>Bảo mật
-                    </a>
+            <div class="col-lg-3 mb-4">
+                <div class="card border-0 shadow-sm overflow-hidden">
+                    <!-- User Profile Summary -->
+                    <div class="card-body text-center pb-3 profile-header">
+                        <img src="{{ Auth::user()->avatar ? asset('storage/' . Auth::user()->avatar) : 'https://ui-avatars.com/api/?name=' . urlencode(Auth::user()->name) . '&background=random&size=80' }}"
+                             alt="" class="rounded-circle mb-2" width="70" height="70" style="border: 3px solid white; object-fit: cover;">
+                        <h6 class="mb-0 text-white">{{ Auth::user()->name }}</h6>
+                        <small class="text-white-50">{{ Auth::user()->email }}</small>
+                    </div>
+
+                    <!-- Navigation Menu -->
+                    <nav class="account-nav p-0">
+                        <a href="#dashboard" class="nav-item active" data-bs-toggle="tab">
+                            <i class="bi bi-speedometer2"></i>
+                            <span>Dashboard</span>
+                        </a>
+                        <a href="#profile" class="nav-item" data-bs-toggle="tab">
+                            <i class="bi bi-person"></i>
+                            <span>Hồ sơ</span>
+                        </a>
+                        <a href="#purchases" class="nav-item" data-bs-toggle="tab">
+                            <i class="bi bi-bag"></i>
+                            <span>Sách đã mua</span>
+                            <span class="badge bg-primary rounded-pill">{{ $stats['books_purchased'] ?? 0 }}</span>
+                        </a>
+                        <a href="#downloads" class="nav-item" data-bs-toggle="tab">
+                            <i class="bi bi-download"></i>
+                            <span>Tải về</span>
+                        </a>
+                        <a href="#favorites" class="nav-item" data-bs-toggle="tab">
+                            <i class="bi bi-heart"></i>
+                            <span>Yêu thích</span>
+                            <span class="badge bg-danger rounded-pill">{{ $stats['favorites_count'] ?? 0 }}</span>
+                        </a>
+                        <a href="#mybooks" class="nav-item" data-bs-toggle="tab">
+                            <i class="bi bi-book"></i>
+                            <span>Sách của tôi</span>
+                        </a>
+                        <a href="#security" class="nav-item" data-bs-toggle="tab">
+                            <i class="bi bi-shield-lock"></i>
+                            <span>Bảo mật</span>
+                        </a>
+                    </nav>
                 </div>
             </div>
 
             <!-- Main Content -->
             <div class="col-lg-9">
                 @if(session('success'))
-                    <div class="alert alert-success">{{ session('success') }}</div>
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        {{ session('success') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
                 @endif
 
-                <!-- Dashboard Tab -->
-                <div class="tab-content" id="dashboardContent">
-                    <div id="dashboard">
+                <!-- Tab Content -->
+                <div class="tab-content">
+
+                    <!-- Dashboard Tab -->
+                    <div class="tab-pane fade show active" id="dashboard">
                         <h4 class="fw-bold mb-4"><i class="bi bi-speedometer2 me-2 text-orange"></i>Dashboard</h4>
                         
                         <!-- Stats Cards -->
@@ -151,9 +236,9 @@
                     </div>
 
                     <!-- Profile Tab -->
-                    <div id="profile" style="display: none;">
+                    <div class="tab-pane fade" id="profile">
                         <h4 class="fw-bold mb-4"><i class="bi bi-person me-2 text-orange"></i>Hồ sơ</h4>
-                        <form action="{{ route('profile.update') }}" method="POST">
+                        <form action="{{ route('user.profile.update') }}" method="POST">
                             @csrf
                             @method('PATCH')
                             <div class="card border-0 shadow-sm">
@@ -189,9 +274,9 @@
                     </div>
 
                     <!-- Security Tab -->
-                    <div id="security" style="display: none;">
+                    <div class="tab-pane fade" id="security">
                         <h4 class="fw-bold mb-4"><i class="bi bi-shield-lock me-2 text-orange"></i>Bảo mật</h4>
-                        <form action="{{ route('password.change') }}" method="POST">
+                        <form action="{{ route('user.password.change') }}" method="POST">
                             @csrf
                             @method('PATCH')
                             <div class="card border-0 shadow-sm">
@@ -216,6 +301,164 @@
                             </div>
                         </form>
                     </div>
+
+                    <!-- Purchases Tab -->
+                    <div class="tab-pane fade" id="purchases">
+                        <h4 class="fw-bold mb-4"><i class="bi bi-bag me-2 text-orange"></i>Sách đã mua</h4>
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body">
+                                @if(isset($purchases) && $purchases->count() > 0)
+                                    <div class="row g-3">
+                                        @foreach($purchases as $purchase)
+                                            @if($purchase->book)
+                                            <div class="col-md-6 col-lg-4">
+                                                <div class="book-card">
+                                                    <img src="{{ $purchase->book->thumbnail ? asset('storage/' . $purchase->book->thumbnail) : 'https://via.placeholder.com/150x200' }}"
+                                                         alt="" class="book-cover">
+                                                    <div class="book-info">
+                                                        <h6 class="mb-1">{{ Str::limit($purchase->book->title, 30) }}</h6>
+                                                        <small class="text-muted">{{ $purchase->book->authors->pluck('name')->first() ?? 'Unknown' }}</small>
+                                                        <div class="mt-2">
+                                                            <a href="{{ route('books.show', $purchase->book->slug) }}" class="btn btn-sm btn-outline-primary">
+                                                                <i class="bi bi-eye"></i> Xem
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            @endif
+                                        @endforeach
+                                    </div>
+                                @else
+                                    <div class="text-center text-muted py-5">
+                                        <i class="bi bi-bag fs-1 d-block mb-3"></i>
+                                        <p>Chưa có sách nào được mua</p>
+                                        <a href="{{ route('books.index') }}" class="btn btn-primary">Khám phá sách</a>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Downloads Tab -->
+                    <div class="tab-pane fade" id="downloads">
+                        <h4 class="fw-bold mb-4"><i class="bi bi-download me-2 text-orange"></i>Tải về</h4>
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body">
+                                @if(isset($downloads) && $downloads->count() > 0)
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>Sách</th>
+                                                    <th>Ngày tải</th>
+                                                    <th>Thao tác</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach($downloads as $download)
+                                                    @if($download->book)
+                                                    <tr>
+                                                        <td>{{ Str::limit($download->book->title, 40) }}</td>
+                                                        <td>{{ $download->created_at->format('d/m/Y H:i') }}</td>
+                                                        <td>
+                                                            <a href="{{ route('books.download', $download->book_id) }}" class="btn btn-sm btn-primary">
+                                                                <i class="bi bi-download"></i> Tải lại
+                                                            </a>
+                                                        </td>
+                                                    </tr>
+                                                    @endif
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                @else
+                                    <div class="text-center text-muted py-5">
+                                        <i class="bi bi-download fs-1 d-block mb-3"></i>
+                                        <p>Chưa có lịch sử tải về</p>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Favorites Tab -->
+                    <div class="tab-pane fade" id="favorites">
+                        <h4 class="fw-bold mb-4"><i class="bi bi-heart me-2 text-orange"></i>Sách yêu thích</h4>
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body">
+                                @if(isset($favorites) && $favorites->count() > 0)
+                                    <div class="row g-3">
+                                        @foreach($favorites as $favorite)
+                                            @if($favorite->book)
+                                            <div class="col-md-6 col-lg-4">
+                                                <div class="book-card">
+                                                    <img src="{{ $favorite->book->thumbnail ? asset('storage/' . $favorite->book->thumbnail) : 'https://via.placeholder.com/150x200' }}"
+                                                         alt="" class="book-cover">
+                                                    <div class="book-info">
+                                                        <h6 class="mb-1">{{ Str::limit($favorite->book->title, 30) }}</h6>
+                                                        <small class="text-muted">{{ $favorite->book->authors->pluck('name')->first() ?? 'Unknown' }}</small>
+                                                        <div class="mt-2 d-flex gap-2">
+                                                            <a href="{{ route('books.show', $favorite->book->slug) }}" class="btn btn-sm btn-outline-primary">
+                                                                <i class="bi bi-eye"></i> Xem
+                                                            </a>
+                                                            <button class="btn btn-sm btn-outline-danger" onclick="removeFavorite({{ $favorite->book->id }})">
+                                                                <i class="bi bi-trash"></i> Xóa
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            @endif
+                                        @endforeach
+                                    </div>
+                                @else
+                                    <div class="text-center text-muted py-5">
+                                        <i class="bi bi-heart fs-1 d-block mb-3"></i>
+                                        <p>Chưa có sách yêu thích</p>
+                                        <a href="{{ route('books.index') }}" class="btn btn-primary">Khám phá sách</a>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- My Books Tab -->
+                    <div class="tab-pane fade" id="mybooks">
+                        <h4 class="fw-bold mb-4"><i class="bi bi-book me-2 text-orange"></i>Sách của tôi</h4>
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body">
+                                @if(isset($myBooks) && $myBooks->count() > 0)
+                                    <div class="row g-3">
+                                        @foreach($myBooks as $book)
+                                            <div class="col-md-6 col-lg-4">
+                                                <div class="book-card">
+                                                    <img src="{{ $book->thumbnail ? asset('storage/' . $book->thumbnail) : 'https://via.placeholder.com/150x200' }}"
+                                                         alt="" class="book-cover">
+                                                    <div class="book-info">
+                                                        <h6 class="mb-1">{{ Str::limit($book->title, 30) }}</h6>
+                                                        <small class="text-muted">{{ $book->authors->pluck('name')->first() ?? 'Unknown' }}</small>
+                                                        <div class="mt-2">
+                                                            <a href="{{ route('books.show', $book->slug) }}" class="btn btn-sm btn-outline-primary">
+                                                                <i class="bi bi-eye"></i> Xem
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                @else
+                                    <div class="text-center text-muted py-5">
+                                        <i class="bi bi-book fs-1 d-block mb-3"></i>
+                                        <p>Chưa có sách nào được đăng tải</p>
+                                        <a href="{{ route('user.books.upload') }}" class="btn btn-primary">Đăng sách mới</a>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>
@@ -224,20 +467,130 @@
     @include('user.component.footer')
 @endsection
 
+@push('styles')
+<style>
+    .account-nav .nav-item {
+        display: flex;
+        align-items: center;
+        padding: 12px 20px;
+        color: #333;
+        text-decoration: none;
+        border-bottom: 1px solid #eee;
+        transition: all 0.2s;
+    }
+    .account-nav .nav-item:last-child {
+        border-bottom: none;
+    }
+    .account-nav .nav-item:hover {
+        background: #fff3e0;
+        color: #ff7043;
+    }
+    .account-nav .nav-item.active {
+        background: linear-gradient(135deg, #ff7043 0%, #ff5722 100%);
+        color: white;
+    }
+    .account-nav .nav-item i {
+        width: 24px;
+        margin-right: 12px;
+        font-size: 1.1rem;
+    }
+    .account-nav .nav-item span {
+        flex: 1;
+    }
+    .account-nav .nav-item .badge {
+        margin-left: auto;
+    }
+    .book-card {
+        border: 1px solid #eee;
+        border-radius: 8px;
+        overflow: hidden;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .book-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .book-card .book-cover {
+        width: 100%;
+        height: 180px;
+        object-fit: cover;
+    }
+    .book-card .book-info {
+        padding: 12px;
+    }
+    .stat-card {
+        transition: transform 0.2s;
+    }
+    .stat-card:hover {
+        transform: translateY(-3px);
+    }
+</style>
+@endpush
+
 @push('scripts')
 <script>
-// Tab switching
-document.querySelectorAll('.account-nav a').forEach(link => {
-    link.addEventListener('click', function(e) {
-        const href = this.getAttribute('href');
-        if (href.startsWith('#')) {
+document.addEventListener('DOMContentLoaded', function() {
+    // Tab switching
+    document.querySelectorAll('.account-nav a[data-bs-toggle="tab"]').forEach(function(triggerEl) {
+        triggerEl.addEventListener('click', function(e) {
             e.preventDefault();
-            document.querySelectorAll('.account-nav a').forEach(l => l.classList.remove('active'));
+            var targetId = this.getAttribute('href');
+
+            // Remove active from all nav items
+            document.querySelectorAll('.account-nav a').forEach(function(item) {
+                item.classList.remove('active');
+            });
             this.classList.add('active');
-            document.querySelectorAll('.tab-content > div').forEach(tab => tab.style.display = 'none');
-            document.querySelector(href).style.display = 'block';
-        }
+
+            // Hide all tab panes
+            document.querySelectorAll('.tab-pane').forEach(function(pane) {
+                pane.classList.remove('show', 'active');
+            });
+
+            // Show target tab
+            var targetPane = document.querySelector(targetId);
+            if (targetPane) {
+                targetPane.classList.add('show', 'active');
+            }
+        });
     });
 });
+
+function removeFavorite(bookId) {
+    if (!confirm('Bạn có chắc muốn xóa khỏi yêu thích?')) return;
+    fetch('/books/' + bookId + '/wishlist', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ book_id: bookId })
+    }).then(response => response.json())
+      .then(data => {
+          if (data.success) {
+              location.reload();
+          }
+      })
+      .catch(error => {
+          console.error('Error:', error);
+          alert('Có lỗi xảy ra khi xóa sách yêu thích');
+      });
+}
+
+function toggleFavorite(bookId) {
+    fetch('/books/' + bookId + '/wishlist', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ book_id: bookId })
+    }).then(response => response.json())
+      .then(data => {
+          if (data.success) {
+              location.reload();
+          }
+      });
+}
 </script>
 @endpush

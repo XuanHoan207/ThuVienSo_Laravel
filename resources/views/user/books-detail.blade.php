@@ -1,17 +1,48 @@
-﻿@extends('user.component.layout')
+@extends('user.component.layout')
 
 @section('title', $book->title . ' - Thư Viện Số')
 
 @push('styles')
     @vite('resources/css/books-detail.css')
+    <style>
+        .rating-star-icon { font-size: 2rem; cursor: pointer; color: #e0e0e0; transition: all 0.2s ease; margin-right: 2px; }
+        .rating-star-icon.active { color: #ffc107; filter: drop-shadow(0 0 3px rgba(255, 193, 7, 0.5)); }
+        .rating-star-icon:hover { transform: scale(1.15); }
+        .star-rating-wrapper { display: flex; align-items: center; gap: 10px; }
+        .review-card { transition: all 0.3s ease; border-left: 3px solid #ffc107; }
+        .review-card:hover { box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important; transform: translateY(-2px); }
+        .wishlist-btn { transition: all 0.3s ease; }
+        .wishlist-btn:hover { transform: scale(1.05); }
+        .wishlist-btn.active { background-color: #dc3545; color: white; border-color: #dc3545; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+        .preview-modal .modal-content { border-radius: 20px; overflow: hidden; }
+        .preview-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .voice-controls { border-left: 2px solid rgba(255,255,255,0.2); padding-left: 15px; }
+        .reading-progress { height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; }
+        .reading-progress-bar { background: #ED553B; transition: width 0.3s ease; }
+    </style>
 @endpush
 
 @push('scripts')
     @vite('resources/js/books-detail.js')
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 @endpush
 
 @section('content')
     @include('user.component.header')
+
+    <!-- Breadcrumb -->
+    <div class="bg-light py-3">
+        <div class="container">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="{{ route('home') }}" class="text-decoration-none">Trang chủ</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route('books.index') }}" class="text-decoration-none">Sách</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ $book->title }}</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
 
     <!-- Book Details Section -->
     <section class="py-5">
@@ -25,18 +56,27 @@
                         @else
                             <img src="https://via.placeholder.com/400x600?text=No+Cover" alt="No Cover" class="book-detail-img img-fluid w-100 rounded">
                         @endif
-                        @if($book->rating_avg >= 4.5)
-                            <span class="badge bg-danger position-absolute top-0 start-0 m-3">Hot</span>
+                        @if($book->price_points > 0)
+                            <span class="badge bg-danger position-absolute top-0 start-0 m-3">PREMIUM</span>
+                        @else
+                            <span class="badge bg-success position-absolute top-0 start-0 m-3">FREE</span>
                         @endif
                     </div>
                     <div class="d-flex gap-2 mt-3 justify-content-center">
-                        <button class="btn {{ $hasFavorited ? 'btn-danger' : 'btn-outline-danger' }}" id="wishlistBtn" onclick="toggleWishlist()">
-                            <i class="bi bi-heart"></i> {{ $hasFavorited ? 'Đã yêu thích' : 'Yêu thích' }}
+                        <button class="btn {{ $hasFavorited ? 'btn-danger' : 'btn-outline-danger' }} flex-grow-1 wishlist-btn {{ $hasFavorited ? 'active' : '' }}" id="btn-favorite" data-id="{{ $book->id }}">
+                            <i class="bi bi-heart{{ $hasFavorited ? '-fill' : '' }}"></i> {{ $hasFavorited ? 'Đã thích' : 'Yêu thích' }}
                         </button>
-                        <button class="btn btn-outline-secondary" onclick="openReportModal()">
+                        <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#reportModal">
                             <i class="bi bi-flag"></i> Báo cáo
                         </button>
                     </div>
+                    @if($book->price_points > 0)
+                    <div class="mt-3 text-center">
+                        <button class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#readOnlineModal">
+                            <i class="bi bi-eye me-2"></i>Xem thử (5 trang miễn phí)
+                        </button>
+                    </div>
+                    @endif
                 </div>
 
                 <!-- Right: Book Info -->
@@ -45,6 +85,9 @@
                     <div class="mb-3">
                         @if($book->category)
                             <span class="badge bg-primary me-2">{{ $book->category->name }}</span>
+                        @endif
+                        @if($book->file_type)
+                            <span class="badge bg-secondary me-2">{{ strtoupper($book->file_type) }}</span>
                         @endif
                         @foreach($book->tags->take(3) as $tag)
                             <span class="badge" style="background-color: {{ $tag->color ?? '#6c757d' }};">{{ $tag->name }}</span>
@@ -57,7 +100,7 @@
                     <p class="text-muted mb-2">
                         <span>Tác giả: </span>
                         @foreach($book->authors as $author)
-                            <a href="{{ route('authors.show', $author->slug) }}" class="text-decoration-none">{{ $author->name }}</a>@if(!$loop->last), @endif
+                            <a href="{{ route('authors.show', ['slug' => $author->slug]) }}" class="text-decoration-none">{{ $author->name }}</a>@if(!$loop->last), @endif
                         @endforeach
                     </p>
 
@@ -86,20 +129,39 @@
                             <div class="row align-items-center">
                                 <div class="col">
                                     <span class="fs-3 fw-bold">{{ number_format($book->price_points) }} điểm</span>
-                                    @if($book->price_points > 0)
-                                        <span class="text-decoration-line-through ms-2 opacity-75">Miễn phí</span>
+                                    @if($book->price_points == 0)
+                                        <span class="badge bg-success ms-2">MIỄN PHÍ</span>
                                     @endif
                                 </div>
                                 <div class="col-auto">
-                                    @if($hasPurchased)
-                                        <a href="{{ route('books.download', $book->id) }}" class="btn btn-success rounded-pill px-4">
-                                            <i class="bi bi-download me-2"></i>Tải sách
-                                        </a>
+                                    @auth
+                                        @if($hasPurchased)
+                                            <div class="d-flex gap-2">
+                                                <button type="button" class="btn btn-orange rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#readOnlineModal" style="background-color: #ff7043; border-color: #ff7043; color: white;">
+                                                    <i class="bi bi-book-half me-2"></i>Đọc ngay
+                                                </button>
+                                                <a href="{{ route('books.download', $book->id) }}" class="btn btn-outline-dark rounded-pill px-4">
+                                                    <i class="bi bi-download me-2"></i>Tải xuống
+                                                </a>
+                                            </div>
+                                        @else
+                                            <form action="{{ route('cart.add') }}" method="POST" id="purchaseForm">
+                                                @csrf
+                                                <input type="hidden" name="book_id" value="{{ $book->id }}">
+                                                <button type="submit" class="btn btn-orange rounded-pill px-4" style="background-color: #ff7043; border-color: #ff7043; color: white;">
+                                                    <i class="bi bi-cart-plus me-2"></i>Thêm vào Giỏ Hàng
+                                                </button>
+                                            </form>
+                                        @endif
                                     @else
-                                        <button class="btn btn-orange rounded-pill px-4" onclick="addToCart()" style="background-color: #ff7043; border-color: #ff7043; color: white;">
-                                            <i class="bi bi-cart-plus me-2"></i>Thêm vào giỏ
-                                        </button>
-                                    @endif
+                                        @if($book->price_points == 0)
+                                            <button type="button" class="btn btn-orange rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#readOnlineModal" style="background-color: #ff7043; border-color: #ff7043; color: white;">
+                                                <i class="bi bi-book-half me-2"></i>Đọc ngay (Miễn phí)
+                                            </button>
+                                        @else
+                                            <a href="{{ route('login') }}" class="btn btn-orange rounded-pill px-4" style="background-color: #ff7043; border-color: #ff7043; color: white;">Đăng nhập để mua</a>
+                                        @endif
+                                    @endauth
                                 </div>
                             </div>
                         </div>
@@ -124,7 +186,7 @@
                         <div class="col-md-3 col-6">
                             <div class="text-center p-3 bg-light rounded">
                                 <i class="bi bi-heart text-danger fs-4"></i>
-                                <p class="mb-0 mt-1"><strong>{{ number_format($book->favorites()->count()) }}</strong></p>
+                                <p class="mb-0 mt-1" id="fav-count"><strong>{{ number_format($book->favorites()->where('status', 'active')->count()) }}</strong></p>
                                 <small class="text-muted">Yêu thích</small>
                             </div>
                         </div>
@@ -180,12 +242,7 @@
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews" type="button">
-                        <i class="bi bi-star me-2"></i>Đánh giá ({{ $book->rating_count }})
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="comments-tab" data-bs-toggle="tab" data-bs-target="#comments" type="button">
-                        <i class="bi bi-chat-left-text me-2"></i>Bình luận
+                        <i class="bi bi-star me-2"></i>Đánh giá & Bình luận ({{ $book->rating_count }})
                     </button>
                 </li>
             </ul>
@@ -197,7 +254,7 @@
                         <div class="card-body">
                             <h4 class="fw-bold mb-3">Giới thiệu sách</h4>
                             <div class="book-description">
-                                {!! nl2br(e($book->description)) !!}
+                                {{ $book->description ?: 'Chưa có mô tả chi tiết cho cuốn sách này.' }}
                             </div>
                         </div>
                     </div>
@@ -213,177 +270,91 @@
                                     <h2 class="fw-bold text-warning mb-0">{{ number_format($book->rating_avg, 1) }}</h2>
                                     <div class="text-warning mb-2">
                                         @for($i = 1; $i <= 5; $i++)
-                                            @if($i <= $book->rating_avg)
-                                                <i class="bi bi-star-fill"></i>
-                                            @elseif($i - 0.5 <= $book->rating_avg)
-                                                <i class="bi bi-star-half"></i>
-                                            @else
-                                                <i class="bi bi-star"></i>
-                                            @endif
+                                            <i class="bi bi-star{{ $i <= round($book->rating_avg) ? '-fill' : '' }}"></i>
                                         @endfor
                                     </div>
                                     <p class="text-muted mb-0">{{ $book->rating_count }} đánh giá</p>
-
-                                    <hr>
-
-                                    <div class="text-start">
-                                        @for($star = 5; $star >= 1; $star--)
-                                            <div class="d-flex align-items-center mb-2">
-                                                <span class="me-2">{{ $star }}</span>
-                                                <i class="bi bi-star-fill text-warning me-2"></i>
-                                                <div class="progress flex-grow-1" style="height: 8px;">
-                                                    <div class="progress-bar bg-warning" style="width: {{ $ratingDistribution[$star]['percentage'] }}%;"></div>
-                                                </div>
-                                                <span class="ms-2 text-muted">{{ $ratingDistribution[$star]['percentage'] }}%</span>
-                                            </div>
-                                        @endfor
-                                    </div>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Reviews List -->
                         <div class="col-lg-8">
-                            <!-- Write Review -->
+                            <!-- Write Review & Comment (Combined) -->
                             @auth
-                            <div class="card border-0 shadow-sm mb-4">
-                                <div class="card-body">
-                                    <h5 class="fw-bold mb-3">Viết đánh giá của bạn</h5>
-                                    @if($userRating)
-                                        <div class="alert alert-info">
-                                            <i class="bi bi-info-circle me-2"></i>Bạn đã đánh giá cuốn sách này {{ $userRating->stars }} sao.
+                                <div class="card border-0 shadow-sm mb-4">
+                                    <div class="card-body">
+                                        <h5 class="fw-bold mb-3">
+                                            <i class="bi bi-star-fill text-warning me-2"></i>Đánh giá & Bình luận
+                                        </h5>
+                                        
+                                        <!-- Star Rating -->
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold">Chọn số sao:</label>
+                                            <div class="star-rating-wrapper">
+                                                <div class="star-rating-input" id="starRatingContainer">
+                                                    @for($i = 1; $i <= 5; $i++)
+                                                        <i class="bi bi-star rating-star-icon {{ ($userRating && $userRating->stars >= $i) ? 'active' : '' }}" data-rating="{{ $i }}"></i>
+                                                    @endfor
+                                                    <input type="hidden" name="stars" id="ratingValue" value="{{ $userRating ? $userRating->stars : '5' }}">
+                                                </div>
+                                                <span class="ms-3 text-muted" id="ratingText">Tuyệt vời</span>
+                                            </div>
                                         </div>
-                                    @else
-                                        <form id="reviewForm">
+                                        
+                                        <!-- Comment Input -->
+                                        <form action="{{ route('books.review', $book->id) }}" method="POST" id="combinedForm">
                                             @csrf
                                             <input type="hidden" name="book_id" value="{{ $book->id }}">
+                                            <input type="hidden" name="stars" id="formRatingValue" value="{{ $userRating ? $userRating->stars : '5' }}">
+                                            <input type="hidden" name="comment" id="hiddenComment">
                                             <div class="mb-3">
-                                                <label class="form-label">Xếp hạng của bạn</label>
-                                                <div class="star-rating-input" id="ratingInput">
-                                                    @for($i = 1; $i <= 5; $i++)
-                                                        <i class="bi bi-star" data-rating="{{ $i }}" onclick="setRating({{ $i }})"></i>
-                                                    @endfor
+                                                <label class="form-label fw-bold">Viết bình luận của bạn:</label>
+                                                <textarea id="commentInput" name="comment" class="form-control" rows="3" placeholder="Chia sẻ trải nghiệm của bạn về tài liệu này..." maxlength="1000">{{ $userRating ? $userRating->comment : '' }}</textarea>
+                                                <div class="d-flex justify-content-between mt-1">
+                                                    <small class="text-muted"><span id="charCount">0</span>/1000 ký tự</small>
                                                 </div>
-                                                <input type="hidden" name="stars" id="selectedRating" value="">
                                             </div>
-                                            <div class="mb-3">
-                                                <label class="form-label">Đánh giá của bạn</label>
-                                                <textarea name="comment" class="form-control" rows="3" placeholder="Chia sẻ trải nghiệm của bạn..."></textarea>
-                                            </div>
-                                            <button type="submit" class="btn btn-primary">Gửi đánh giá</button>
+                                            <button type="submit" class="btn btn-warning fw-bold px-4" id="btnSubmitRating">
+                                                <i class="bi bi-send me-2"></i>Gửi đánh giá
+                                            </button>
                                         </form>
-                                    @endif
+                                    </div>
                                 </div>
-                            </div>
+                            @else
+                                <div class="alert alert-info rounded-4 border-0 shadow-sm">
+                                    <i class="bi bi-info-circle me-2"></i> Vui lòng <a href="{{ route('login') }}" class="fw-bold">đăng nhập</a> để gửi đánh giá và bình luận.
+                                </div>
                             @endauth
 
                             <!-- Review List -->
                             <div id="reviewsList">
+                                <h5 class="fw-bold mb-3">
+                                    <i class="bi bi-chat-left-text me-2"></i>Danh sách đánh giá ({{ $book->rating_count }})
+                                </h5>
                                 @forelse($book->ratings->take(10) as $rating)
-                                <div class="card review-card mb-3">
-                                    <div class="card-body">
-                                        <div class="d-flex mb-2">
-                                            <img src="{{ $rating->user->avatar ? asset('storage/' . $rating->user->avatar) : 'https://via.placeholder.com/50' }}" 
-                                                 alt="" class="rounded-circle me-3" style="width: 50px; height: 50px; object-fit: cover;">
-                                            <div>
-                                                <h6 class="mb-0">{{ $rating->user->name ?? 'Người dùng' }}</h6>
-                                                <div class="text-warning small">
-                                                    @for($i = 1; $i <= 5; $i++)
-                                                        @if($i <= $rating->stars)
-                                                            <i class="bi bi-star-fill"></i>
-                                                        @else
-                                                            <i class="bi bi-star"></i>
-                                                        @endif
-                                                    @endfor
-                                                </div>
-                                            </div>
-                                            <span class="ms-auto text-muted small">{{ $rating->created_at->diffForHumans() }}</span>
-                                        </div>
-                                        <p class="mb-0">{{ $rating->comment ?? '' }}</p>
-                                    </div>
-                                </div>
-                                @empty
-                                <div class="text-center py-4">
-                                    <p class="text-muted">Chưa có đánh giá nào. Hãy là người đầu tiên đánh giá!</p>
-                                </div>
-                                @endforelse
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Comments Tab -->
-                <div class="tab-pane fade" id="comments" role="tabpanel">
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-body">
-                            <!-- Comment Form -->
-                            @auth
-                            <div class="mb-4">
-                                <form id="commentForm">
-                                    @csrf
-                                    <input type="hidden" name="book_id" value="{{ $book->id }}">
-                                    <div class="d-flex gap-3">
-                                        <img src="{{ auth()->user()->avatar ? asset('storage/' . auth()->user()->avatar) : 'https://via.placeholder.com/50' }}" 
-                                             alt="" class="rounded-circle" style="width: 50px; height: 50px; object-fit: cover;">
-                                        <div class="flex-grow-1">
-                                            <textarea name="content" class="form-control" rows="3" placeholder="Viết bình luận của bạn..."></textarea>
-                                            <button type="submit" class="btn btn-primary mt-2">Gửi bình luận</button>
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
-                            @else
-                            <div class="alert alert-info mb-4">
-                                <a href="{{ route('login') }}">Đăng nhập</a> để viết bình luận.
-                            </div>
-                            @endauth
-
-                            <hr>
-
-                            <!-- Comments List -->
-                            <div id="commentsList">
-                                @forelse($comments as $comment)
-                                <div class="d-flex gap-3 mb-4">
-                                    <img src="{{ $comment->user->avatar ? asset('storage/' . $comment->user->avatar) : 'https://via.placeholder.com/50' }}" 
-                                         alt="" class="rounded-circle" style="width: 50px; height: 50px; object-fit: cover;">
-                                    <div class="flex-grow-1">
-                                        <div class="bg-light p-3 rounded">
-                                            <div class="d-flex justify-content-between">
-                                                <h6 class="mb-1">{{ $comment->user->name ?? 'Người dùng' }}</h6>
-                                                <small class="text-muted">{{ $comment->created_at->diffForHumans() }}</small>
-                                            </div>
-                                            <p class="mb-2">{{ $comment->content }}</p>
-                                            @auth
-                                            <div class="d-flex gap-3">
-                                                <a href="#" class="text-decoration-none small"><i class="bi bi-hand-thumbs-up me-1"></i> Thích</a>
-                                                <a href="#" class="text-decoration-none small" onclick="showReplyForm({{ $comment->id }}); return false;"><i class="bi bi-reply me-1"></i> Trả lời</a>
-                                            </div>
-                                            @endauth
-                                        </div>
-
-                                        <!-- Replies -->
-                                        @forelse($comment->approvedReplies as $reply)
-                                        <div class="d-flex gap-3 mt-3 ms-5">
-                                            <img src="{{ $reply->user->avatar ? asset('storage/' . $reply->user->avatar) : 'https://via.placeholder.com/40' }}" 
-                                                 alt="" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
-                                            <div class="flex-grow-1">
-                                                <div class="bg-light p-3 rounded">
-                                                    <div class="d-flex justify-content-between">
-                                                        <h6 class="mb-1">{{ $reply->user->name ?? 'Người dùng' }}</h6>
-                                                        <small class="text-muted">{{ $reply->created_at->diffForHumans() }}</small>
+                                    <div class="card review-card mb-3">
+                                        <div class="card-body">
+                                            <div class="d-flex mb-2">
+                                                <img src="{{ $rating->user->avatar ? asset('storage/' . $rating->user->avatar) : 'https://ui-avatars.com/api/?name=' . urlencode($rating->user->name ?? 'User') . '&background=random&color=fff' }}" 
+                                                     alt="" class="rounded-circle me-3" style="width: 50px; height: 50px; object-fit: cover;">
+                                                <div>
+                                                    <h6 class="mb-0 fw-bold">{{ $rating->user->name ?? 'Người dùng' }}</h6>
+                                                    <div class="text-warning small">
+                                                        @for($i = 1; $i <= 5; $i++)
+                                                            <i class="bi bi-star{{ $i <= $rating->stars ? '-fill' : '' }}"></i>
+                                                        @endfor
                                                     </div>
-                                                    <p class="mb-0">{{ $reply->content }}</p>
                                                 </div>
+                                                <span class="ms-auto text-muted small">{{ $rating->created_at->format('d/m/Y') }}</span>
                                             </div>
+                                            <p class="mb-0 text-dark" style="line-height: 1.6;">
+                                                {{ $rating->comment ?: 'Người dùng không viết bình luận.' }}
+                                            </p>
                                         </div>
-                                        @empty
-                                        @endforelse
                                     </div>
-                                </div>
                                 @empty
-                                <div class="text-center py-4">
-                                    <p class="text-muted">Chưa có bình luận nào.</p>
-                                </div>
+                                    <p class="text-center text-muted">Chưa có đánh giá nào. Hãy là người đầu tiên đánh giá!</p>
                                 @endforelse
                             </div>
                         </div>
@@ -425,12 +396,50 @@
         </div>
     </section>
 
+    <!-- Reader Modal -->
+    <div class="modal fade" id="readOnlineModal" tabindex="-1">
+        <div class="modal-dialog modal-fullscreen">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white border-0 py-2 d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center">
+                        <h6 class="modal-title mb-0 me-3">{{ $book->title }} - {{ $hasPurchased ? 'Bản đầy đủ' : 'Xem thử (5 trang)' }}</h6>
+                        <div class="voice-controls d-flex flex-column gap-1 border-start ps-3 ms-1">
+                            <div class="d-flex align-items-center gap-2">
+                                <button id="btn-read-aloud" class="btn btn-sm btn-orange rounded-pill px-3 py-1 d-flex align-items-center gap-2 shadow-sm" style="background-color: #ED553B; border: none; color: white;">
+                                    <i class="bi bi-volume-up-fill"></i>
+                                    <span id="read-aloud-text" class="small fw-bold">Nghe sách AI</span>
+                                </button>
+                                <div id="voice-settings" class="d-none animate__animated animate__fadeIn d-flex align-items-center gap-2 bg-dark-subtle rounded-pill px-2 py-1">
+                                    <select id="voice-select" class="form-select form-select-sm bg-transparent text-white border-0 py-0 shadow-none" style="width: 120px; font-size: 0.7rem;"></select>
+                                    <input type="range" id="voice-rate" min="0.5" max="2" value="1" step="0.1" class="form-range" style="width: 50px; height: 10px;" title="Tốc độ">
+                                </div>
+                            </div>
+                            <div id="reading-progress-container" class="d-none" style="width: 200px;">
+                                <div class="reading-progress">
+                                    <div id="reading-progress-bar" class="reading-progress-bar" role="progressbar" style="width: 0%;"></div>
+                                </div>
+                                <div class="d-flex justify-content-between" style="font-size: 0.6rem;">
+                                    <span id="reading-status" class="text-white-50">Đang chuẩn bị...</span>
+                                    <span id="reading-percent" class="text-white-50">0%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-0 bg-secondary">
+                    <iframe id="previewIframe" src="{{ route('books.preview', $book->id) }}?t={{ $hasPurchased ? 'full' : 'preview' }}" width="100%" height="100%" style="border: none;"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Report Modal -->
     <div class="modal fade" id="reportModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
                 <div class="modal-header">
-                    <h5 class="modal-title"><i class="bi bi-flag me-2"></i>Báo cáo sách</h5>
+                    <h5 class="modal-title"><i class="bi bi-flag me-2"></i>Báo cáo tài liệu</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <form id="reportForm">
@@ -439,22 +448,22 @@
                     <div class="modal-body">
                         <div class="mb-3">
                             <label class="form-label">Loại vi phạm</label>
-                            <select name="type" class="form-select" required>
+                            <select name="type" class="form-select border-light bg-light">
                                 <option value="">Chọn loại vi phạm</option>
                                 <option value="copyright">Vi phạm bản quyền</option>
-                                <option value="inappropriate">Nội dung không phù hợp</option>
-                                <option value="broken_link">Link hỏng</option>
+                                <option value="content">Nội dung không phù hợp</option>
+                                <option value="broken">Link hỏng/Lỗi file</option>
                                 <option value="other">Khác</option>
                             </select>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Mô tả chi tiết</label>
-                            <textarea name="reason" class="form-control" rows="4" placeholder="Mô tả vấn đề của bạn..." required></textarea>
+                        <div class="mb-0">
+                            <label class="form-label">Mô tả</label>
+                            <textarea name="reason" class="form-control border-light bg-light" rows="4" placeholder="Chi tiết vấn đề..."></textarea>
                         </div>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                        <button type="submit" class="btn btn-danger">Gửi báo cáo</button>
+                    <div class="modal-footer border-0">
+                        <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="btn btn-danger rounded-pill px-4">Gửi báo cáo</button>
                     </div>
                 </form>
             </div>
@@ -476,147 +485,334 @@
 
 @push('scripts')
 <script>
-let selectedRating = 0;
-
-function setRating(rating) {
-    selectedRating = rating;
-    document.getElementById('selectedRating').value = rating;
-    const stars = document.querySelectorAll('#ratingInput i');
-    stars.forEach((star, index) => {
-        if (index < rating) {
-            star.classList.add('text-warning');
-        } else {
-            star.classList.remove('text-warning');
-        }
-    });
-}
-
-function addToCart() {
-    fetch('/cart/add', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-        },
-        body: JSON.stringify({ book_id: {{ $book->id }} })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert(data.message);
-            location.reload();
-        } else {
-            alert(data.error || 'Có lỗi xảy ra!');
-        }
-    });
-}
-
-function toggleWishlist() {
-    fetch('/wishlist/toggle', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-        },
-        body: JSON.stringify({ book_id: {{ $book->id }} })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            const btn = document.getElementById('wishlistBtn');
-            if (data.is_favorited) {
-                btn.classList.remove('btn-outline-danger');
-                btn.classList.add('btn-danger');
-                btn.innerHTML = '<i class="bi bi-heart"></i> Đã yêu thích';
-            } else {
-                btn.classList.remove('btn-danger');
-                btn.classList.add('btn-outline-danger');
-                btn.innerHTML = '<i class="bi bi-heart"></i> Yêu thích';
+document.addEventListener('DOMContentLoaded', function() {
+    // Favorite Button
+    const favBtn = document.getElementById('btn-favorite');
+    const favCount = document.getElementById('fav-count');
+    
+    if(favBtn) {
+        favBtn.addEventListener('click', async function() {
+            const id = this.dataset.id;
+            try {
+                const response = await fetch('/wishlist/toggle', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ book_id: id })
+                });
+                
+                if(response.redirected) {
+                    window.location.href = response.url;
+                    return;
+                }
+                
+                const data = await response.json();
+                console.log('Wishlist response:', data);
+                
+                if(data.success) {
+                    if(data.is_favorited) {
+                        this.innerHTML = '<i class="bi bi-heart-fill"></i> Đã thích';
+                        this.classList.remove('btn-outline-danger');
+                        this.classList.add('btn-danger', 'active');
+                    } else {
+                        this.innerHTML = '<i class="bi bi-heart"></i> Yêu thích';
+                        this.classList.remove('btn-danger', 'active');
+                        this.classList.add('btn-outline-danger');
+                    }
+                    
+                    if (favCount && data.count !== undefined) {
+                        favCount.innerHTML = `<strong>${data.count}</strong>`;
+                    }
+                } else {
+                    alert(data.error || 'Vui lòng đăng nhập!');
+                }
+            } catch(e) {
+                console.error('Wishlist error:', e);
+                alert('Có lỗi xảy ra!');
             }
-            alert(data.message);
-        } else {
-            alert(data.error || 'Vui lòng đăng nhập!');
-        }
-    });
-}
-
-function openReportModal() {
-    new bootstrap.Modal(document.getElementById('reportModal')).show();
-}
-
-// Review Form
-document.getElementById('reviewForm')?.addEventListener('submit', function(e) {
-    e.preventDefault();
-    if (selectedRating === 0) {
-        alert('Vui lòng chọn số sao đánh giá!');
-        return;
+        });
     }
-    
-    const formData = new FormData(this);
-    formData.set('stars', selectedRating);
-    
-    fetch('{{ route('books.review', $book->id) }}', {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-        },
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert(data.message);
-            location.reload();
-        } else {
-            alert(data.error || 'Có lỗi xảy ra!');
-        }
-    });
-});
 
-// Comment Form
-document.getElementById('commentForm')?.addEventListener('submit', function(e) {
-    e.preventDefault();
-    const formData = new FormData(this);
-    
-    fetch('{{ route('books.comment', $book->id) }}', {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-        },
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert(data.message);
-            location.reload();
-        } else {
-            alert(data.error || 'Có lỗi xảy ra!');
-        }
-    });
-});
+    // Rating Star with Hover Effects
+    const stars = document.querySelectorAll('.rating-star-icon');
+    const ratingInput = document.getElementById('ratingValue');
+    const ratingText = document.getElementById('ratingText');
+    const ratingLabels = ['', 'Rất tệ', 'Tệ', 'Bình thường', 'Tốt', 'Tuyệt vời'];
 
-// Report Form
-document.getElementById('reportForm')?.addEventListener('submit', function(e) {
-    e.preventDefault();
-    const formData = new FormData(this);
-    
-    fetch('{{ route('books.report', $book->id) }}', {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-        },
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert(data.message);
-            bootstrap.Modal.getInstance(document.getElementById('reportModal')).hide();
-        } else {
-            alert(data.error || 'Có lỗi xảy ra!');
+    function updateStars(rating) {
+        stars.forEach(s => {
+            const starValue = parseInt(s.dataset.rating);
+            if (starValue <= rating) {
+                s.classList.add('active');
+                s.style.color = '#ffc107';
+                s.style.transform = 'scale(1.2)';
+            } else {
+                s.classList.remove('active');
+                s.style.color = '#ccc';
+                s.style.transform = 'scale(1)';
+            }
+        });
+        if (ratingText) {
+            ratingText.textContent = ratingLabels[rating] || '';
         }
+        if (ratingInput) ratingInput.value = rating;
+        const formRating = document.getElementById('formRatingValue');
+        if (formRating) formRating.value = rating;
+    }
+
+    if (ratingInput) {
+        updateStars(parseInt(ratingInput.value));
+    }
+
+    stars.forEach(star => {
+        star.style.cursor = 'pointer';
+        star.style.transition = 'all 0.2s ease';
+        star.style.transformOrigin = 'center';
+
+        star.addEventListener('mouseenter', function() {
+            const rating = parseInt(this.dataset.rating);
+            stars.forEach(s => {
+                const starValue = parseInt(s.dataset.rating);
+                if (starValue <= rating) {
+                    s.classList.add('active');
+                    s.style.color = '#ffc107';
+                    s.style.transform = 'scale(1.2)';
+                }
+            });
+            if (ratingText) {
+                ratingText.textContent = ratingLabels[rating];
+            }
+        });
+
+        star.addEventListener('mouseleave', function() {
+            updateStars(parseInt(ratingInput?.value || 5));
+        });
+
+        star.addEventListener('click', function() {
+            const rating = parseInt(this.dataset.rating);
+            updateStars(rating);
+        });
     });
+
+    // Combined Form Submit
+    const combinedForm = document.getElementById('combinedForm');
+    if (combinedForm) {
+        const commentInput = document.getElementById('commentInput');
+        const hiddenComment = document.getElementById('hiddenComment');
+
+        combinedForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (hiddenComment) {
+                hiddenComment.value = commentInput.value;
+            }
+            
+            const formData = new FormData(this);
+            
+            fetch(this.action, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message || 'Cảm ơn bạn đã đánh giá!');
+                    location.reload();
+                } else {
+                    alert(data.error || 'Có lỗi xảy ra!');
+                }
+            });
+        });
+    }
+
+    // Comment Character Count
+    const commentInput = document.getElementById('commentInput');
+    const charCount = document.getElementById('charCount');
+    if (commentInput && charCount) {
+        charCount.textContent = commentInput.value.length;
+        commentInput.addEventListener('input', function() {
+            charCount.textContent = this.value.length;
+        });
+    }
+
+    // Purchase Form
+    const purchaseForm = document.getElementById('purchaseForm');
+    if (purchaseForm) {
+        purchaseForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            
+            fetch('/cart/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ book_id: {{ $book->id }} })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    window.location.href = '{{ route('cart') }}';
+                } else {
+                    alert(data.error || 'Có lỗi xảy ra!');
+                }
+            });
+        });
+    }
+
+    // Report Form
+    document.getElementById('reportForm')?.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        
+        fetch('{{ route('books.report', $book->id) }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Cảm ơn phản hồi của bạn!');
+                bootstrap.Modal.getInstance(document.getElementById('reportModal')).hide();
+            } else {
+                alert(data.error || 'Có lỗi xảy ra!');
+            }
+        });
+    });
+
+    // Text-to-Speech (Read Aloud)
+    const btnReadAloud = document.getElementById('btn-read-aloud');
+    const readAloudText = document.getElementById('read-aloud-text');
+    const voiceSettings = document.getElementById('voice-settings');
+    const voiceSelect = document.getElementById('voice-select');
+    const voiceRate = document.getElementById('voice-rate');
+    const progressContainer = document.getElementById('reading-progress-container');
+    const progressBar = document.getElementById('reading-progress-bar');
+    const readingStatus = document.getElementById('reading-status');
+    const readingPercent = document.getElementById('reading-percent');
+    
+    const synth = window.speechSynthesis;
+    let utterance = null;
+    let voices = [];
+
+    function loadVoices() {
+        voices = synth.getVoices();
+        if (voices.length === 0) return;
+
+        const viVoices = voices.filter(v => v.lang.includes('vi'));
+        const enVoices = voices.filter(v => v.lang.includes('en'));
+        const targetVoices = viVoices.length > 0 ? viVoices : enVoices;
+
+        voiceSelect.innerHTML = voices
+            .filter(v => v.lang.includes('vi') || v.lang.includes('en'))
+            .map(v => `<option value="${v.name}" ${(v.name.includes('Google') || v.name.includes('Natural')) && v.lang.includes('vi') ? 'selected' : ''}>${v.name}</option>`)
+            .join('');
+    }
+
+    loadVoices();
+    if (synth.onvoiceschanged !== undefined) {
+        synth.onvoiceschanged = loadVoices;
+    }
+    setTimeout(loadVoices, 500);
+    setTimeout(loadVoices, 1000);
+
+    function updateProgress(percent, status) {
+        if (progressBar) progressBar.style.width = percent + '%';
+        if (readingPercent) readingPercent.innerText = Math.round(percent) + '%';
+        if (status && readingStatus) readingStatus.innerText = status;
+    }
+
+    if (btnReadAloud) {
+        btnReadAloud.addEventListener('click', async function() {
+            if (synth.speaking) {
+                if (synth.paused) {
+                    synth.resume();
+                    readAloudText.innerText = 'Đang phát';
+                } else {
+                    synth.pause();
+                    readAloudText.innerText = 'Tiếp tục';
+                }
+                return;
+            }
+
+            synth.cancel();
+
+            progressContainer.classList.remove('d-none');
+            updateProgress(0, 'Đang chuẩn bị...');
+            readAloudText.innerText = 'Đang quét...';
+
+            try {
+                const fallbackText = document.querySelector('.book-description').innerText;
+                
+                utterance = new SpeechSynthesisUtterance(fallbackText);
+                
+                const selectedVoice = voices.find(v => v.name === voiceSelect.value);
+                if (selectedVoice) {
+                    utterance.voice = selectedVoice;
+                    utterance.lang = selectedVoice.lang;
+                } else {
+                    utterance.lang = 'vi-VN';
+                }
+                
+                utterance.rate = parseFloat(voiceRate.value) || 1;
+                utterance.pitch = 1;
+                utterance.volume = 1;
+
+                utterance.onstart = () => {
+                    updateProgress(50, 'Bắt đầu đọc...');
+                    readAloudText.innerText = 'Đang phát';
+                    voiceSettings.classList.remove('d-none');
+                };
+
+                utterance.onboundary = (event) => {
+                    const percent = 50 + (event.charIndex / fallbackText.length * 50);
+                    updateProgress(percent, 'Đang phát âm...');
+                };
+
+                utterance.onend = () => {
+                    updateProgress(100, 'Hoàn thành');
+                    setTimeout(() => {
+                        readAloudText.innerText = 'Nghe sách AI';
+                        progressContainer.classList.add('d-none');
+                        voiceSettings.classList.add('d-none');
+                    }, 1500);
+                };
+
+                utterance.onerror = (e) => {
+                    readAloudText.innerText = 'Lỗi âm thanh';
+                    updateProgress(0, 'Lỗi hệ thống giọng nói');
+                };
+
+                setTimeout(() => {
+                    synth.speak(utterance);
+                }, 100);
+
+            } catch (error) {
+                readAloudText.innerText = 'Lỗi';
+                updateProgress(0, 'Không thể đọc');
+            }
+        });
+    }
+
+    const readModal = document.getElementById('readOnlineModal');
+    if (readModal) {
+        readModal.addEventListener('hidden.bs.modal', () => {
+            synth.cancel();
+        });
+    }
 });
 </script>
 @endpush
+
+

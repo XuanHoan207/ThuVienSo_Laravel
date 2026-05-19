@@ -50,7 +50,7 @@
                         </div>
                     @endif
 
-                    <form action="{{ route('books.store') }}" method="POST" enctype="multipart/form-data" id="uploadForm">
+                    <form action="{{ route('user.books.store') }}" method="POST" enctype="multipart/form-data" id="uploadForm">
                         @csrf
                         
                         <!-- Step 1: Basic Info -->

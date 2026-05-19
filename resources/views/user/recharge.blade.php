@@ -3,7 +3,67 @@
 @section('title', 'Nạp Điểm - Thư Viện Số')
 
 @push('styles')
-    @vite('resources/css/recharge.css')
+    <style>
+        .recharge-container {
+            background: linear-gradient(135deg, #fff4ec 0%, #ff8d4c 100%);
+        }
+        .payment-method-card {
+            border: 2px solid #e9ecef;
+            border-radius: 16px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+        }
+        .payment-method-card:hover {
+            border-color: #ED553B;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(237, 85, 59, 0.15);
+        }
+        .payment-method-card.active {
+            border-color: #ED553B;
+            background: #fff5f3;
+        }
+        .payment-method-card.active .payment-check {
+            background: #ED553B;
+            border-color: #ED553B;
+        }
+        .payment-method-card.active .payment-check i {
+            display: block;
+        }
+        .payment-check {
+            width: 24px;
+            height: 24px;
+            border: 2px solid #dee2e6;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            flex-shrink: 0;
+        }
+        .payment-check i {
+            display: none;
+            color: white;
+            font-size: 14px;
+        }
+        .vnpay-logo {
+            width: 80px;
+            height: auto;
+        }
+        .momo-logo {
+            width: 60px;
+            height: auto;
+        }
+        .zalopay-logo {
+            width: 80px;
+            height: auto;
+        }
+        .bank-logo {
+            width: 60px;
+            height: auto;
+        }
+    </style>
 @endpush
 
 @push('scripts')
@@ -27,217 +87,179 @@
     </div>
 
     <!-- Recharge Section -->
-    <section class="py-5">
+    <section class="py-5 bg-white">
         <div class="container">
-            <form action="{{ route('recharge.process') }}" method="POST" id="rechargeForm">
-                @csrf
-                <div class="row">
-                    <!-- Left: Recharge Form -->
-                    <div class="col-lg-8">
-                        <h2 class="fw-bold mb-2"><i class="bi bi-wallet2 me-2 text-orange"></i>Nạp Điểm</h2>
-                        <p class="text-muted mb-4">Chọn gói nạp phù hợp với nhu cầu của bạn</p>
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+                    <div class="row g-4">
+                        <!-- Left: Info -->
+                        <div class="col-md-5">
+                            <div class="recharge-container text-white p-4 p-md-5 rounded-4 h-100 shadow-lg border-0">
+                                <h2 class="fw-bold mb-4">Tại sao nên nạp điểm?</h2>
+                                <p class="mb-5 opacity-75">Nạp điểm giúp bạn sở hữu các tài liệu số độc quyền, chất lượng cao và ủng hộ cộng đồng tác giả.</p>
+                                
+                                <div class="d-flex flex-column gap-4">
+                                    <div class="d-flex align-items-start gap-3">
+                                        <div class="bg-white bg-opacity-20 rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; flex-shrink: 0;">
+                                            <i class="bi bi-shield-check fs-5"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="fw-bold mb-1">Giao dịch an toàn</h6>
+                                            <p class="mb-0 small opacity-75">Bảo mật tuyệt đối thông qua các cổng thanh toán uy tín.</p>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex align-items-start gap-3">
+                                        <div class="bg-white bg-opacity-20 rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; flex-shrink: 0;">
+                                            <i class="bi bi-lightning-fill fs-5"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="fw-bold mb-1">Cộng điểm tức thì</h6>
+                                            <p class="mb-0 small opacity-75">Nhận điểm ngay sau khi thanh toán thành công.</p>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex align-items-start gap-3">
+                                        <div class="bg-white bg-opacity-20 rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; flex-shrink: 0;">
+                                            <i class="bi bi-gift-fill fs-5"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="fw-bold mb-1">Ưu đãi nạp lớn</h6>
+                                            <p class="mb-0 small opacity-75">Thưởng thêm điểm cho các gói nạp từ 50k trở lên.</p>
+                                        </div>
+                                    </div>
+                                </div>
 
-                        <!-- Current Points -->
-                        <div class="card border-0 shadow-sm mb-4" style="background: linear-gradient(135deg, #fff4ec 0%, #ff8d4c 100%); border: 1px solid #f06728;">
-                            <div class="card-body text-center py-4">
-                                <p class="mb-1 text-orange"><i class="bi bi-coin me-2"></i>Số dư hiện tại</p>
-                                <h2 class="mb-0 fw-bold text-dark">{{ number_format(Auth::user()->points) }} điểm</h2>
-                            </div>
-                        </div>
-
-                        <!-- Package Selection -->
-                        <h5 class="fw-bold mb-3">Chọn gói nạp</h5>
-                        <div class="row g-4 mb-4" id="packageGrid">
-                            <div class="col-md-4">
-                                <label class="package-card {{ old('amount') == 10000 ? 'selected' : '' }}">
-                                    <input type="radio" name="amount" value="10000" class="d-none" {{ old('amount') == 10000 ? 'checked' : '' }}>
-                                    <h6 class="text-muted mb-2">Cơ bản</h6>
-                                    <div class="points-amount text-dark mb-2">100 điểm</div>
-                                    <div class="price-amount mb-2">10.000đ</div>
-                                    <p class="text-muted small mb-0">Tỷ lệ: 100 điểm/10k</p>
-                                </label>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="package-card {{ old('amount') == 50000 ? 'selected' : '' }}">
-                                    <input type="radio" name="amount" value="50000" class="d-none" {{ old('amount') == 50000 ? 'checked' : '' }}>
-                                    <h6 class="text-muted mb-2">Phổ biến</h6>
-                                    <div class="points-amount text-dark mb-2">550 điểm</div>
-                                    <div class="price-amount mb-2">50.000đ</div>
-                                    <p class="text-success small mb-0">+10% bonus</p>
-                                </label>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="package-card {{ old('amount') == 100000 ? 'selected' : '' }}">
-                                    <input type="radio" name="amount" value="100000" class="d-none" {{ old('amount') == 100000 ? 'checked' : '' }}>
-                                    <h6 class="text-muted mb-2">Tiết kiệm</h6>
-                                    <div class="points-amount text-dark mb-2">1,200 điểm</div>
-                                    <div class="price-amount mb-2">100.000đ</div>
-                                    <p class="text-success small mb-0">+20% bonus</p>
-                                </label>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="package-card {{ old('amount') == 200000 ? 'selected' : '' }}">
-                                    <input type="radio" name="amount" value="200000" class="d-none" {{ old('amount') == 200000 ? 'checked' : '' }}>
-                                    <h6 class="text-muted mb-2">Cao cấp</h6>
-                                    <div class="points-amount text-dark mb-2">2,600 điểm</div>
-                                    <div class="price-amount mb-2">200.000đ</div>
-                                    <p class="text-success small mb-0">+30% bonus</p>
-                                </label>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="package-card popular {{ old('amount') == 500000 ? 'selected' : '' }}">
-                                    <input type="radio" name="amount" value="500000" class="d-none" {{ old('amount') == 500000 ? 'checked' : '' }}>
-                                    <h6 class="text-muted mb-2">VIP</h6>
-                                    <div class="points-amount text-dark mb-2">7,500 điểm</div>
-                                    <div class="price-amount mb-2">500.000đ</div>
-                                    <p class="text-success small mb-0">+50% bonus</p>
-                                </label>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="package-card" onclick="document.getElementById('customAmountCard').style.display='block'">
-                                    <i class="bi bi-plus-circle text-orange mb-2" style="font-size: 2rem;"></i>
-                                    <h6 class="mb-2">Tùy chỉnh</h6>
-                                    <p class="text-muted small mb-0">Nhập số tiền bất kỳ</p>
+                                <div class="mt-5 pt-4 border-top border-white border-opacity-10 text-center">
+                                    <small class="opacity-50">Hỗ trợ 24/7: 1900 1234</small>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Custom Amount Input -->
-                        <div class="card border-0 shadow-sm mb-4" id="customAmountCard" style="display: none;">
-                            <div class="card-body">
-                                <h5 class="fw-bold mb-3">Nhập số tiền tùy chỉnh</h5>
-                                <div class="row align-items-end">
-                                    <div class="col-md-6">
-                                        <label class="form-label">Số tiền (VNĐ)</label>
-                                        <input type="number" name="custom_amount" class="form-control form-control-lg" id="customAmountInput" 
-                                               placeholder="Nhập số tiền" min="10000" step="1000">
-                                        <small class="text-muted">Tối thiểu: 10,000đ</small>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">Ước tính nhận được</label>
-                                        <div class="fs-4 fw-bold text-orange" id="customPointsPreview">0 điểm</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        <!-- Right: Form -->
+                        <div class="col-md-7">
+                            <div class="card border-0 shadow-lg rounded-4 p-4 p-md-5">
+                                <h4 class="fw-bold mb-4 text-dark">Chọn gói nạp điểm</h4>
+                                
+                                @if(session('error'))
+                                    <div class="alert alert-danger rounded-3 border-0 shadow-sm mb-4">{{ session('error') }}</div>
+                                @endif
+                                @if(session('success'))
+                                    <div class="alert alert-success rounded-3 border-0 shadow-sm mb-4">{{ session('success') }}</div>
+                                @endif
 
-                        <!-- Payment Method -->
-                        <h5 class="fw-bold mb-3">Phương thức thanh toán</h5>
-                        <div class="row g-3 mb-4">
-                            <div class="col-md-6">
-                                <label class="payment-method {{ old('payment_method') == 'vnpay' || !old('payment_method') ? 'selected' : '' }}">
-                                    <input type="radio" name="payment_method" value="vnpay" class="d-none" {{ old('payment_method') == 'vnpay' || !old('payment_method') ? 'checked' : '' }}>
-                                    <div class="d-flex align-items-center">
-                                        <i class="bi bi-credit-card text-primary me-3" style="font-size: 2rem;"></i>
-                                        <div>
-                                            <h6 class="mb-0">VNPay</h6>
-                                            <small class="text-muted">Thanh toán qua VNPay</small>
+                                <form action="{{ route('recharge.process') }}" method="POST" id="rechargeForm">
+                                    @csrf
+                                    <div class="mb-4">
+                                        <label class="form-label small fw-bold text-muted mb-3">MỆNH GIÁ PHỔ BIẾN</label>
+                                        <div class="row g-2 mb-4">
+                                            @php $amounts = [10000, 50000, 100000, 200000, 500000, 1000000]; @endphp
+                                            @foreach($amounts as $amount)
+                                                <div class="col-4">
+                                                    <button type="button" class="btn btn-outline-light border text-dark w-100 py-3 rounded-3 amount-btn transition-all" data-amount="{{ $amount }}" style="background: #f8f9fa; border-color: #dee2e6;">
+                                                        <span class="fw-bold small">{{ number_format($amount/1000) }}k</span>
+                                                    </button>
+                                                </div>
+                                            @endforeach
                                         </div>
-                                        <i class="bi bi-check-circle-fill text-orange ms-auto"></i>
-                                    </div>
-                                </label>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="payment-method {{ old('payment_method') == 'momo' ? 'selected' : '' }}">
-                                    <input type="radio" name="payment_method" value="momo" class="d-none" {{ old('payment_method') == 'momo' ? 'checked' : '' }}>
-                                    <div class="d-flex align-items-center">
-                                        <i class="bi bi-qr-code text-danger me-3" style="font-size: 2rem;"></i>
-                                        <div>
-                                            <h6 class="mb-0">MoMo</h6>
-                                            <small class="text-muted">Thanh toán qua MoMo</small>
-                                        </div>
-                                        <i class="bi bi-check-circle-fill text-orange ms-auto"></i>
-                                    </div>
-                                </label>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="payment-method {{ old('payment_method') == 'zalo' ? 'selected' : '' }}">
-                                    <input type="radio" name="payment_method" value="zalo" class="d-none" {{ old('payment_method') == 'zalo' ? 'checked' : '' }}>
-                                    <div class="d-flex align-items-center">
-                                        <i class="bi bi-hexagon text-info me-3" style="font-size: 2rem;"></i>
-                                        <div>
-                                            <h6 class="mb-0">ZaloPay</h6>
-                                            <small class="text-muted">Thanh toán qua ZaloPay</small>
-                                        </div>
-                                        <i class="bi bi-check-circle-fill text-orange ms-auto"></i>
-                                    </div>
-                                </label>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="payment-method {{ old('payment_method') == 'banking' ? 'selected' : '' }}">
-                                    <input type="radio" name="payment_method" value="banking" class="d-none" {{ old('payment_method') == 'banking' ? 'checked' : '' }}>
-                                    <div class="d-flex align-items-center">
-                                        <i class="bi bi-bank text-primary me-3" style="font-size: 2rem;"></i>
-                                        <div>
-                                            <h6 class="mb-0">Chuyển khoản</h6>
-                                            <small class="text-muted">ATM/Internet Banking</small>
-                                        </div>
-                                        <i class="bi bi-check-circle-fill text-orange ms-auto"></i>
-                                    </div>
-                                </label>
-                            </div>
-                        </div>
-
-                        <!-- Submit Button -->
-                        <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill" id="submitBtn">
-                            <i class="bi bi-credit-card me-2"></i> Thanh toán ngay
-                        </button>
-                    </div>
-
-                    <!-- Right: Transaction History -->
-                    <div class="col-lg-4">
-                        <div class="card border-0 shadow-sm">
-                            <div class="card-header bg-white">
-                                <h5 class="fw-bold mb-0"><i class="bi bi-clock-history me-2 text-orange"></i>Lịch sử giao dịch</h5>
-                            </div>
-                            <div class="card-body p-0">
-                                <div class="list-group list-group-flush">
-                                    @forelse($transactions as $transaction)
-                                    <div class="list-group-item transaction-item px-3 py-3">
-                                        <div class="d-flex justify-content-between align-items-start">
-                                            <div>
-                                                <h6 class="mb-1">{{ $transaction->type === 'recharge' ? 'Nạp tiền ' . ucfirst($transaction->payment_method) : 'Thanh toán sách' }}</h6>
-                                                <small class="text-muted">{{ $transaction->created_at->format('d/m/Y H:i') }}</small>
-                                                <p class="mb-0 mt-1">
-                                                    @if($transaction->points > 0)
-                                                        <span class="badge bg-success">+{{ $transaction->points }} điểm</span>
-                                                    @else
-                                                        <span class="badge bg-danger">{{ $transaction->points }} điểm</span>
-                                                    @endif
-                                                </p>
+                                        
+                                        <label class="form-label small fw-bold text-muted mb-2">NHẬP SỐ TIỀN KHÁC (VND)</label>
+                                        <input type="number" name="amount" id="amountInput" 
+                                               class="form-control form-control-lg border-light bg-light rounded-3 text-center fw-bold" 
+                                               style="color: #ED553B;"
+                                               placeholder="Tối thiểu 10,000" min="10000" required>
+                                    
+                                        <div class="mt-3 p-3 rounded-3 text-center" style="background: #fff4ec; border: 1px solid #ED553B;">
+                                            <span class="text-muted small">Bạn sẽ nhận được:</span>
+                                            <div class="d-flex align-items-center justify-content-center gap-2">
+                                                <h3 id="pointsPreview" class="fw-bold mb-0" style="color: #ED553B;">0</h3>
+                                                <span class="fw-bold" style="color: #ED553B;">ĐIỂM</span>
                                             </div>
-                                            @if($transaction->amount > 0)
-                                                <span class="text-success fw-bold">{{ number_format($transaction->amount) }}đ</span>
-                                            @endif
+                                            <small class="text-muted x-small">Tỷ giá: 1,000 VND = 1 điểm</small>
                                         </div>
                                     </div>
-                                    @empty
-                                    <div class="list-group-item text-center py-4">
-                                        <p class="text-muted mb-0">Chưa có giao dịch</p>
-                                    </div>
-                                    @endforelse
-                                </div>
-                            </div>
-                            <div class="card-footer text-center">
-                                <a href="{{ url('/history') }}" class="text-orange text-decoration-none">Xem tất cả lịch sử <i class="bi bi-arrow-right"></i></a>
-                            </div>
-                        </div>
 
-                        <!-- Info Card -->
-                        <div class="card border-0 shadow-sm mt-4" style="background: linear-gradient(135deg, #ED553B 0%, #FF8A5B 100%);">
-                            <div class="card-body text-white">
-                                <h5><i class="bi bi-info-circle me-2"></i>Lưu ý</h5>
-                                <ul class="mb-0 ps-3">
-                                    <li>Tỷ lệ quy đổi: <strong>100 điểm = 10,000 VNĐ</strong></li>
-                                    <li>Điểm được cộng ngay sau khi thanh toán thành công</li>
-                                    <li>Hỗ trợ nạp 24/7</li>
-                                    <li>Liên hệ hotline 1900 1234 nếu cần hỗ trợ</li>
-                                </ul>
+                                    <div class="mb-4">
+                                        <label class="form-label small fw-bold text-muted mb-3">PHƯƠNG THỨC THANH TOÁN</label>
+                                        
+                                        <!-- VNPay -->
+                                        <div class="payment-method-card mb-3 active" data-method="vnpay" onclick="selectPayment(this)">
+                                            <div class="d-flex align-items-center">
+                                                <div class="payment-check">
+                                                    <i class="bi bi-check"></i>
+                                                </div>
+                                                <input type="radio" name="payment_method" value="vnpay" class="d-none" checked>
+                                                <div class="ms-3 flex-grow-1">
+                                                    <img src="https://vnpay.vn/wp-content/uploads/2020/07/Logo-VNPAYQR-no-background.png" alt="VNPay" class="vnpay-logo" style="height: 30px;">
+                                                </div>
+                                                <div class="text-end">
+                                                    <p class="mb-0 fw-bold small text-dark">VNPAY</p>
+                                                    <p class="mb-0 x-small text-muted">ATM, QR-Code, Ví điện tử</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- MoMo -->
+                                        <div class="payment-method-card mb-3" data-method="momo" onclick="selectPayment(this)">
+                                            <div class="d-flex align-items-center">
+                                                <div class="payment-check">
+                                                    <i class="bi bi-check"></i>
+                                                </div>
+                                                <input type="radio" name="payment_method" value="momo" class="d-none">
+                                                <div class="ms-3 flex-grow-1">
+                                                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/MoMo_Logo.png/1200px-MoMo_Logo.png" alt="MoMo" class="momo-logo" style="height: 35px;">
+                                                </div>
+                                                <div class="text-end">
+                                                    <p class="mb-0 fw-bold small text-dark">MoMo</p>
+                                                    <p class="mb-0 x-small text-muted">Ví điện tử MoMo</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- ZaloPay -->
+                                        <div class="payment-method-card mb-3" data-method="zalo" onclick="selectPayment(this)">
+                                            <div class="d-flex align-items-center">
+                                                <div class="payment-check">
+                                                    <i class="bi bi-check"></i>
+                                                </div>
+                                                <input type="radio" name="payment_method" value="zalo" class="d-none">
+                                                <div class="ms-3 flex-grow-1">
+                                                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Zalo_pay_logo.svg/1200px-Zalo_pay_logo.svg.png" alt="ZaloPay" class="zalopay-logo" style="height: 30px;">
+                                                </div>
+                                                <div class="text-end">
+                                                    <p class="mb-0 fw-bold small text-dark">ZaloPay</p>
+                                                    <p class="mb-0 x-small text-muted">Ví ZaloPay</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Banking -->
+                                        <div class="payment-method-card" data-method="banking" onclick="selectPayment(this)">
+                                            <div class="d-flex align-items-center">
+                                                <div class="payment-check">
+                                                    <i class="bi bi-check"></i>
+                                                </div>
+                                                <input type="radio" name="payment_method" value="banking" class="d-none">
+                                                <div class="ms-3 flex-grow-1">
+                                                    <i class="bi bi-bank fs-2" style="color: #ED553B;"></i>
+                                                </div>
+                                                <div class="text-end">
+                                                    <p class="mb-0 fw-bold small text-dark">Chuyển khoản</p>
+                                                    <p class="mb-0 x-small text-muted">ATM / Internet Banking</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="d-grid mt-5">
+                                        <button type="submit" class="btn btn-lg rounded-pill py-3 fw-bold shadow-sm transition-all" style="background: linear-gradient(135deg, #ED553B, #FF8A5B); border: none; color: white;">
+                                            NẠP ĐIỂM NGAY <i class="bi bi-arrow-right ms-2"></i>
+                                        </button>
+                                    </div>
+                                </form>
                             </div>
                         </div>
                     </div>
                 </div>
-            </form>
+            </div>
         </div>
     </section>
 
@@ -246,26 +268,68 @@
 
 @push('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Package selection
-    document.querySelectorAll('.package-card input[type="radio"]').forEach(input => {
-        input.closest('.package-card').addEventListener('click', function() {
-            document.querySelectorAll('.package-card').forEach(card => card.classList.remove('selected'));
-            this.classList.add('selected');
+    document.addEventListener('DOMContentLoaded', function() {
+        const amountInput = document.getElementById('amountInput');
+        const pointsPreview = document.getElementById('pointsPreview');
+        const amountBtns = document.querySelectorAll('.amount-btn');
+
+        function updatePoints() {
+            const val = parseInt(amountInput.value) || 0;
+            const points = Math.floor(val / 1000);
+            pointsPreview.innerText = points.toLocaleString();
+        }
+
+        amountInput.addEventListener('input', function() {
+            updatePoints();
+            amountBtns.forEach(b => b.classList.remove('active'));
+            this.style.borderColor = '#ED553B';
         });
+
+        amountBtns.forEach(btn => {
+            btn.style.transition = 'all 0.3s ease';
+            btn.addEventListener('click', function() {
+                amountInput.value = this.dataset.amount;
+                amountBtns.forEach(b => {
+                    b.classList.remove('active');
+                    b.style.backgroundColor = '#f8f9fa';
+                    b.style.borderColor = '#dee2e6';
+                    b.style.color = '#333';
+                });
+                this.classList.add('active');
+                this.style.backgroundColor = '#ED553B';
+                this.style.borderColor = '#ED553B';
+                this.style.color = 'white';
+                updatePoints();
+            });
+        });
+
+        // Set default active button
+        const defaultBtn = document.querySelector('.amount-btn[data-amount="50000"]');
+        if (defaultBtn) {
+            defaultBtn.click();
+        }
     });
 
-    // Payment method selection
-    document.querySelectorAll('.payment-method input[type="radio"]').forEach(input => {
-        input.closest('.payment-method').addEventListener('click', function() {
-            document.querySelectorAll('.payment-method').forEach(m => {
-                m.classList.remove('selected');
-                m.querySelector('.bi-check-circle-fill').style.display = 'none';
-            });
-            this.classList.add('selected');
-            this.querySelector('.bi-check-circle-fill').style.display = 'block';
+    function selectPayment(element) {
+        document.querySelectorAll('.payment-method-card').forEach(card => {
+            card.classList.remove('active');
+            card.querySelector('input[type="radio"]').checked = false;
         });
-    });
-});
+        element.classList.add('active');
+        element.querySelector('input[type="radio"]').checked = true;
+    }
 </script>
+<style>
+    .amount-btn:hover, .amount-btn.active {
+        background-color: #ED553B !important;
+        border-color: #ED553B !important;
+        color: white !important;
+    }
+    .payment-method-card.active {
+        border-color: #ED553B !important;
+        background-color: #fff5f3;
+    }
+    .x-small { font-size: 0.75rem; }
+    .transition-all { transition: all 0.3s ease; }
+</style>
 @endpush

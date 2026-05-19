@@ -48,17 +48,39 @@ class CartController extends Controller
         $book = Book::findOrFail($request->book_id);
 
         if (Auth::check() && Auth::user()->hasPurchased($book)) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Bạn đã mua sách này rồi!'
+                ]);
+            }
             return redirect()->back()->with('error', 'Bạn đã mua sách này rồi!');
         }
 
         $cart = session()->get('cart', []);
 
-        if (!isset($cart[$book->id])) {
-            $cart[$book->id] = [
-                'book_id' => $book->id,
-                'quantity' => 1,
-            ];
-            session()->put('cart', $cart);
+        if (isset($cart[$book->id])) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Sách đã có trong giỏ hàng!'
+                ]);
+            }
+            return redirect()->back()->with('error', 'Sách đã có trong giỏ hàng!');
+        }
+
+        $cart[$book->id] = [
+            'book_id' => $book->id,
+            'quantity' => 1,
+        ];
+        session()->put('cart', $cart);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Đã thêm "' . $book->title . '" vào giỏ hàng!',
+                'cartCount' => count($cart)
+            ]);
         }
 
         return redirect()->back()->with('success', 'Đã thêm vào giỏ hàng!');

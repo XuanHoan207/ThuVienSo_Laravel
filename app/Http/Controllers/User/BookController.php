@@ -95,15 +95,26 @@ class BookController extends Controller
             ->leftJoin('book_tag', 'tags.id', '=', 'book_tag.tag_id')
             ->leftJoin('books', function ($join) {
                 $join->on('book_tag.book_id', '=', 'books.id')
-                    ->where('books.status', 'approved');
+                    ->where('books.status', 'approved')
+                    ->whereNull('books.deleted_at');
             })
-            ->select('tags.*', \DB::raw('COUNT(DISTINCT books.id) as books_count'))
-            ->groupBy('tags.id')
+            ->select('tags.id', 'tags.name', 'tags.slug', 'tags.color', 'tags.created_at', 'tags.updated_at', \DB::raw('COUNT(DISTINCT books.id) as books_count'))
+            ->groupBy('tags.id', 'tags.name', 'tags.slug', 'tags.color', 'tags.created_at', 'tags.updated_at')
             ->orderBy('books_count', 'desc')
             ->limit(10)
             ->get();
             
-        $authors = Author::withCount('authoredBooks')->orderBy('authored_books_count', 'desc')->limit(20)->get();
+        $authors = \DB::table('authors')
+            ->leftJoin('book_author', 'authors.id', '=', 'book_author.author_id')
+            ->leftJoin('books', function ($join) {
+                $join->on('book_author.book_id', '=', 'books.id')
+                    ->whereNull('books.deleted_at');
+            })
+            ->select('authors.id', 'authors.name', 'authors.slug', 'authors.bio', 'authors.image', 'authors.email', 'authors.website', 'authors.created_at', 'authors.updated_at', \DB::raw('COUNT(DISTINCT books.id) as authored_books_count'))
+            ->groupBy('authors.id', 'authors.name', 'authors.slug', 'authors.bio', 'authors.image', 'authors.email', 'authors.website', 'authors.created_at', 'authors.updated_at')
+            ->orderBy('authored_books_count', 'desc')
+            ->limit(20)
+            ->get();
 
         return view('user.books', compact(
             'books',

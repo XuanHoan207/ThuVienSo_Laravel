@@ -28,7 +28,11 @@ class WishlistController extends Controller
     public function toggle(Request $request)
     {
         if (!Auth::check()) {
-            return response()->json(['error' => 'Vui lòng đăng nhập!'], 401);
+            return response()->json([
+                'success' => false,
+                'error' => 'Vui lòng đăng nhập!',
+                'is_authenticated' => false
+            ], 401);
         }
 
         $request->validate([
@@ -45,17 +49,25 @@ class WishlistController extends Controller
         if ($favorite) {
             if ($favorite->status === 'active') {
                 $favorite->update(['status' => 'inactive']);
+                $favoriteCount = Favorite::where('book_id', $book->id)
+                    ->where('status', 'active')
+                    ->count();
                 return response()->json([
                     'success' => true,
                     'is_favorited' => false,
                     'message' => 'Đã xóa khỏi yêu thích!',
+                    'count' => $favoriteCount,
                 ]);
             } else {
                 $favorite->update(['status' => 'active']);
+                $favoriteCount = Favorite::where('book_id', $book->id)
+                    ->where('status', 'active')
+                    ->count();
                 return response()->json([
                     'success' => true,
                     'is_favorited' => true,
                     'message' => 'Đã thêm vào yêu thích!',
+                    'count' => $favoriteCount,
                 ]);
             }
         } else {
@@ -64,10 +76,14 @@ class WishlistController extends Controller
                 'book_id' => $book->id,
                 'status' => 'active',
             ]);
+            $favoriteCount = Favorite::where('book_id', $book->id)
+                ->where('status', 'active')
+                ->count();
             return response()->json([
                 'success' => true,
                 'is_favorited' => true,
                 'message' => 'Đã thêm vào yêu thích!',
+                'count' => $favoriteCount,
             ]);
         }
     }

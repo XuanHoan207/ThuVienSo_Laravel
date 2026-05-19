@@ -32,6 +32,28 @@ class AccountController extends Controller
             'books_uploaded' => $user->books()->count(),
         ];
 
+        // Tab data
+        $purchases = Purchase::with('book.authors')
+            ->where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->paginate(12);
+
+        $downloads = \App\Models\BookDownload::with('book.authors')
+            ->where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->paginate(12);
+
+        $favorites = Favorite::with('book.authors')
+            ->where('user_id', $user->id)
+            ->where('status', 'active')
+            ->orderBy('created_at', 'desc')
+            ->paginate(12);
+
+        $myBooks = Book::with('authors')
+            ->where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->paginate(12);
+
         // Recent activity
         $recentActivity = collect();
 
@@ -43,12 +65,14 @@ class AccountController extends Controller
             ->get();
 
         foreach ($recentPurchases as $p) {
-            $recentActivity->push([
-                'type' => 'purchase',
-                'title' => 'Mua sách "' . $p->book->title . '"',
-                'points' => -$p->price_paid,
-                'created_at' => $p->created_at,
-            ]);
+            if ($p->book) {
+                $recentActivity->push([
+                    'type' => 'purchase',
+                    'title' => 'Mua sách "' . $p->book->title . '"',
+                    'points' => -$p->price_paid,
+                    'created_at' => $p->created_at,
+                ]);
+            }
         }
 
         // Recent point transactions
@@ -68,7 +92,7 @@ class AccountController extends Controller
 
         $recentActivity = $recentActivity->sortByDesc('created_at')->take(5);
 
-        return view('user.my-account', compact('stats', 'recentActivity'));
+        return view('user.my-account', compact('stats', 'recentActivity', 'purchases', 'downloads', 'favorites', 'myBooks'));
     }
 
     public function updateProfile(Request $request)
