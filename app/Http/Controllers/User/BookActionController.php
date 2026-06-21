@@ -53,17 +53,16 @@ class BookActionController extends Controller
     }
 
     // Toggle wishlist
-    public function toggleWishlist(Request $request)
+    public function toggleWishlist(Request $request, $id)
     {
-        $request->validate([
-            'book_id' => 'required|exists:books,id',
-        ]);
-
         if (!Auth::check()) {
-            return response()->json(['error' => 'Vui lòng đăng nhập!'], 401);
+            return response()->json([
+                'success' => false,
+                'error' => 'Vui lòng đăng nhập!',
+            ], 401);
         }
 
-        $book = Book::findOrFail($request->book_id);
+        $book = Book::findOrFail($id);
         $user = Auth::user();
 
         $favorite = Favorite::where('user_id', $user->id)
@@ -71,9 +70,15 @@ class BookActionController extends Controller
             ->first();
 
         if ($favorite) {
-            $favorite->delete();
-            $isFavorited = false;
-            $message = 'Đã xóa khỏi yêu thích!';
+            if ($favorite->status === 'active') {
+                $favorite->update(['status' => 'inactive']);
+                $isFavorited = false;
+                $message = 'Đã xóa khỏi yêu thích!';
+            } else {
+                $favorite->update(['status' => 'active']);
+                $isFavorited = true;
+                $message = 'Đã thêm vào yêu thích!';
+            }
         } else {
             Favorite::create([
                 'user_id' => $user->id,

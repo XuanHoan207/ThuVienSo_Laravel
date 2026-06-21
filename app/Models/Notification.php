@@ -19,6 +19,7 @@ class Notification extends Model
         'icon',
         'is_read',
         'read_at',
+        'data',
     ];
 
     protected function casts(): array
@@ -26,6 +27,7 @@ class Notification extends Model
         return [
             'is_read' => 'boolean',
             'read_at' => 'datetime',
+            'data' => 'array',
         ];
     }
 
@@ -55,5 +57,35 @@ class Notification extends Model
     public static function createNotification(array $data): self
     {
         return self::create($data);
+    }
+
+    // Helper method để tạo thông báo liên quan đến sách
+    public static function createBookNotification(
+        int $userId,
+        string $type,
+        string $title,
+        string $content,
+        array $bookData,
+        ?string $link = null
+    ): self {
+        $icons = [
+            'book_approved' => 'bi-check-circle',
+            'book_rejected' => 'bi-x-circle',
+            'book_pending' => 'bi-clock',
+            'book_new' => 'bi-plus-circle',
+        ];
+
+        return self::create([
+            'user_id' => $userId,
+            'type' => $type,
+            'title' => $title,
+            'content' => $content,
+            'icon' => $icons[$type] ?? 'bi-bell',
+            'link' => $link,
+            'is_read' => false,
+            'data' => [
+                'book' => $bookData,
+            ],
+        ]);
     }
 }

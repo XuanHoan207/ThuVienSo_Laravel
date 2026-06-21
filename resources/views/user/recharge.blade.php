@@ -214,41 +214,6 @@
                                             </div>
                                         </div>
 
-                                        <!-- ZaloPay -->
-                                        <div class="payment-method-card mb-3" data-method="zalo" onclick="selectPayment(this)">
-                                            <div class="d-flex align-items-center">
-                                                <div class="payment-check">
-                                                    <i class="bi bi-check"></i>
-                                                </div>
-                                                <input type="radio" name="payment_method" value="zalo" class="d-none">
-                                                <div class="ms-3 flex-grow-1">
-                                                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Zalo_pay_logo.svg/1200px-Zalo_pay_logo.svg.png" alt="ZaloPay" class="zalopay-logo" style="height: 30px;">
-                                                </div>
-                                                <div class="text-end">
-                                                    <p class="mb-0 fw-bold small text-dark">ZaloPay</p>
-                                                    <p class="mb-0 x-small text-muted">Ví ZaloPay</p>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Banking -->
-                                        <div class="payment-method-card" data-method="banking" onclick="selectPayment(this)">
-                                            <div class="d-flex align-items-center">
-                                                <div class="payment-check">
-                                                    <i class="bi bi-check"></i>
-                                                </div>
-                                                <input type="radio" name="payment_method" value="banking" class="d-none">
-                                                <div class="ms-3 flex-grow-1">
-                                                    <i class="bi bi-bank fs-2" style="color: #ED553B;"></i>
-                                                </div>
-                                                <div class="text-end">
-                                                    <p class="mb-0 fw-bold small text-dark">Chuyển khoản</p>
-                                                    <p class="mb-0 x-small text-muted">ATM / Internet Banking</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
                                     <div class="d-grid mt-5">
                                         <button type="submit" class="btn btn-lg rounded-pill py-3 fw-bold shadow-sm transition-all" style="background: linear-gradient(135deg, #ED553B, #FF8A5B); border: none; color: white;">
                                             NẠP ĐIỂM NGAY <i class="bi bi-arrow-right ms-2"></i>

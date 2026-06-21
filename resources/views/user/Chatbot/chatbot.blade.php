@@ -103,3 +103,8 @@
     <!-- Linking custom script -->
     @vite('resources/views/user/Chatbot/chatbot.js')
 
+    <!-- Pass API Key to JavaScript -->
+    <script>
+        window.GEMINI_API_KEY = "{{ config('services.gemini.api_key') }}";
+        window.GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent";
+    </script>

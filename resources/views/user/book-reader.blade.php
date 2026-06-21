@@ -94,9 +94,13 @@
                 <div>
                     <h5 class="mb-1">{{ $book->title }}</h5>
                     <small class="text-white-50">
-                        @foreach($book->authors as $author)
-                            {{ $author->name }}@if(!$loop->last), @endif
-                        @endforeach
+                        @if($book->authors && $book->authors->count() > 0)
+                            @foreach($book->authors as $author)
+                                {{ $author->name }}@if(!$loop->last), @endif
+                            @endforeach
+                        @else
+                            Không rõ tác giả
+                        @endif
                     </small>
                 </div>
             </div>
@@ -142,6 +146,7 @@ let currentPage = {{ $currentPage }};
 const totalPages = {{ $book->pages ?? 0 }};
 const maxAllowedPage = {{ $maxAllowedPage }};
 const bookId = {{ $book->id }};
+const bookSlug = "{{ $book->slug }}";
 
 function changePage(direction) {
     const newPage = currentPage + direction;
@@ -160,7 +165,7 @@ function updatePage(page) {
         </div>
     `;
     
-    fetch(`/books/${bookId}/read/page?page=${page}`)
+    fetch(`/books/${bookSlug}/read/page?page=${page}`)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -183,7 +188,7 @@ function updatePage(page) {
         });
     
     // Save progress
-    fetch(`/books/${bookId}/read/progress`, {
+    fetch(`/books/${bookSlug}/read/progress`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

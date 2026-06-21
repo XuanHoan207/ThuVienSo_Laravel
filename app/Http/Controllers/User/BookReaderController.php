@@ -21,7 +21,10 @@ class BookReaderController extends Controller
         $user = Auth::user();
         $hasPurchased = $user && $user->hasPurchased($book);
 
-        if (!$hasPurchased && $book->price_points > 0) {
+        // Người đăng sách được đọc miễn phí
+        $isUploader = $user && $book->user_id === $user->id;
+
+        if (!$hasPurchased && !$isUploader && $book->price_points > 0) {
             return redirect()->route('books.show', $slug)
                 ->with('error', 'Bạn cần mua sách để đọc toàn bộ nội dung.');
         }
@@ -34,13 +37,14 @@ class BookReaderController extends Controller
         }
 
         $currentPage = $readProgress ? $readProgress->last_page : 1;
-        $maxAllowedPage = $hasPurchased ? $book->pages ?? 999 : self::FREE_PAGES_LIMIT;
+        $maxAllowedPage = ($hasPurchased || $isUploader) ? $book->pages ?? 999 : self::FREE_PAGES_LIMIT;
 
         $freePagesLimit = self::FREE_PAGES_LIMIT;
 
         return view('user.book-reader', compact(
             'book',
             'hasPurchased',
+            'isUploader',
             'readProgress',
             'currentPage',
             'maxAllowedPage',
@@ -58,10 +62,11 @@ class BookReaderController extends Controller
             'page' => 'required|integer|min:1',
         ]);
 
-        $book = Book::findOrFail($id);
+        $book = Book::where('slug', $id)->orWhere('id', $id)->firstOrFail();
         $user = Auth::user();
         $hasPurchased = $user->hasPurchased($book);
-        $maxAllowedPage = $hasPurchased ? ($book->pages ?? 999) : self::FREE_PAGES_LIMIT;
+        $isUploader = $book->user_id === $user->id;
+        $maxAllowedPage = ($hasPurchased || $isUploader) ? ($book->pages ?? 999) : self::FREE_PAGES_LIMIT;
 
         $page = min($request->page, $maxAllowedPage);
 
@@ -78,21 +83,22 @@ class BookReaderController extends Controller
             'success' => true,
             'current_page' => $page,
             'max_allowed_page' => $maxAllowedPage,
-            'is_preview' => !$hasPurchased,
+            'is_preview' => !$hasPurchased && !$isUploader,
         ]);
     }
 
     public function getPage(Request $request, $id)
     {
-        $book = Book::findOrFail($id);
+        $book = Book::where('slug', $id)->orWhere('id', $id)->firstOrFail();
         $user = Auth::user();
         $hasPurchased = $user && $user->hasPurchased($book);
-        $maxAllowedPage = $hasPurchased ? ($book->pages ?? 999) : self::FREE_PAGES_LIMIT;
+        $isUploader = $user && $book->user_id === $user->id;
+        $maxAllowedPage = ($hasPurchased || $isUploader) ? ($book->pages ?? 999) : self::FREE_PAGES_LIMIT;
 
         $page = $request->get('page', 1);
         $page = max(1, min($page, $maxAllowedPage));
 
-        $isPreview = !$hasPurchased && $book->price_points > 0;
+        $isPreview = !$hasPurchased && !$isUploader && $book->price_points > 0;
 
         return response()->json([
             'success' => true,
@@ -105,50 +111,85 @@ class BookReaderController extends Controller
                 ? 'Bạn đã xem miễn phí ' . self::FREE_PAGES_LIMIT . ' trang đầu. Hãy mua sách để đọc tiếp.'
                 : null,
             'has_purchased' => $hasPurchased,
+            'is_uploader' => $isUploader,
         ]);
     }
 
-    public function preview(Request $request, $id)
+    public function preview(Request $request, $slug)
     {
-        $book = Book::findOrFail($id);
+        $book = Book::where('slug', $slug)
+            ->where('status', 'approved')
+            ->firstOrFail();
         $user = Auth::user();
         $hasPurchased = $user && $user->hasPurchased($book);
+        $isUploader = $user && $book->user_id === $user->id;
         $type = $request->get('t', 'preview');
+        $pageParam = $request->get('page', 1);
 
-        $isFullAccess = $hasPurchased || $book->price_points == 0 || $type === 'full';
+        $isFullAccess = $hasPurchased || $isUploader || $book->price_points == 0 || $type === 'full';
         $previewPages = self::FREE_PAGES_LIMIT;
+        $maxAllowedPage = $isFullAccess ? ($book->pages ?? 999) : $previewPages;
+
+        // Get reading progress
+        $readProgress = null;
+        if ($user) {
+            $readProgress = BookReadProgress::where('user_id', $user->id)
+                ->where('book_id', $book->id)
+                ->first();
+        }
+        $currentPage = $readProgress ? $readProgress->last_page : (int)$pageParam;
 
         return view('user.book-preview', compact(
             'book',
             'hasPurchased',
+            'isUploader',
             'isFullAccess',
-            'previewPages'
+            'previewPages',
+            'currentPage',
+            'maxAllowedPage'
         ));
     }
 
-    public function previewPdf(Request $request, $id)
+    public function previewPdf(Request $request, $slug)
     {
-        $book = Book::findOrFail($id);
+        $book = Book::where('slug', $slug)
+            ->where('status', 'approved')
+            ->firstOrFail();
         $user = Auth::user();
         $hasPurchased = $user && $user->hasPurchased($book);
+        $isUploader = $user && $book->user_id === $user->id;
         $type = $request->get('t', 'preview');
-        $isFullAccess = $hasPurchased || $book->price_points == 0 || $type === 'full';
+        $isFullAccess = $hasPurchased || $isUploader || $book->price_points == 0 || $type === 'full';
 
-        // Get the file path
-        $filePath = $book->file_path;
-        $fullPath = storage_path('app/public/' . $filePath);
+        // Try multiple possible paths
+        $filePaths = [
+            storage_path('app/' . $book->file_path),
+            storage_path('app/public/' . $book->file_path),
+            public_path($book->file_path),
+            public_path('storage/' . $book->file_path),
+        ];
 
-        // Check if file exists
-        if (!file_exists($fullPath)) {
-            return abort(404, 'Tài liệu không tồn tại.');
+        // Also check if file_path already contains storage path
+        if (str_starts_with($book->file_path, 'storage/')) {
+            $filePaths[] = public_path($book->file_path);
+            $filePaths[] = storage_path('app/public/' . str_replace('storage/', '', $book->file_path));
         }
 
-        // For preview (not purchased), limit to 5 pages
-        if (!$isFullAccess) {
-            // For now, return the full PDF - in production you'd create a limited PDF
-            // or check PDF.js on frontend to limit display
-            return response()->file($fullPath);
+        $fullPath = null;
+        foreach ($filePaths as $path) {
+            \Log::info('Checking path: ' . $path);
+            if (file_exists($path)) {
+                $fullPath = $path;
+                break;
+            }
         }
+
+        if (!$fullPath) {
+            \Log::error('PDF not found. Tried paths:', $filePaths);
+            return abort(404, 'Tài liệu không tồn tại. Path: ' . $book->file_path);
+        }
+
+        \Log::info('PDF found at: ' . $fullPath);
 
         return response()->file($fullPath);
     }

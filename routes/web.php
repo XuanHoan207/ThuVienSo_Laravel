@@ -17,11 +17,11 @@ Route::post('/contact', [App\Http\Controllers\User\ContactController::class, 'su
 // Books Routes
 Route::get('/books', [App\Http\Controllers\User\BookController::class, 'index'])->name('books.index');
 Route::get('/books/{slug}', [App\Http\Controllers\User\BookController::class, 'show'])->name('books.show');
-Route::get('/books/{id}/read', [App\Http\Controllers\User\BookReaderController::class, 'show'])->name('books.read');
-Route::get('/books/{id}/preview', [App\Http\Controllers\User\BookReaderController::class, 'preview'])->name('books.preview');
-Route::get('/books/{id}/preview-pdf', [App\Http\Controllers\User\BookReaderController::class, 'previewPdf'])->name('books.preview_pdf');
-Route::post('/books/{id}/read/progress', [App\Http\Controllers\User\BookReaderController::class, 'updateProgress'])->name('books.read.progress');
-Route::get('/books/{id}/read/page', [App\Http\Controllers\User\BookReaderController::class, 'getPage'])->name('books.read.page');
+Route::get('/books/{slug}/read', [App\Http\Controllers\User\BookReaderController::class, 'show'])->name('books.read');
+Route::get('/books/{slug}/preview', [App\Http\Controllers\User\BookReaderController::class, 'preview'])->name('books.preview');
+Route::get('/books/{slug}/preview-pdf', [App\Http\Controllers\User\BookReaderController::class, 'previewPdf'])->name('books.preview_pdf');
+Route::post('/books/{slug}/read/progress', [App\Http\Controllers\User\BookReaderController::class, 'updateProgress'])->name('books.read.progress');
+Route::get('/books/{slug}/read/page', [App\Http\Controllers\User\BookReaderController::class, 'getPage'])->name('books.read.page');
 
 // Authors Routes
 Route::get('/authors', [App\Http\Controllers\User\AuthorController::class, 'index'])->name('authors.index');

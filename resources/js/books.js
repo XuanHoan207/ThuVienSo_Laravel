@@ -7,7 +7,65 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('priceTo').value = this.value;
         });
     }
+
+    // Wishlist toggle on book cards
+    const booksGrid = document.getElementById('booksGrid');
+    if (booksGrid) {
+        booksGrid.addEventListener('click', async function(e) {
+            const btn = e.target.closest('.wishlist-btn');
+            if (!btn) return;
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            if (btn.dataset.auth !== '1') {
+                window.location.href = btn.dataset.loginUrl || '/login';
+                return;
+            }
+
+            const bookId = btn.dataset.bookId;
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+
+            try {
+                const response = await fetch(`/books/${bookId}/wishlist`, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    updateWishlistButton(btn, data.is_favorited);
+                }
+            } catch (error) {
+                console.error('Wishlist error:', error);
+            }
+        });
+    }
 });
+
+function updateWishlistButton(btn, isFavorited) {
+    const icon = btn.querySelector('i');
+    if (!icon) return;
+
+    if (isFavorited) {
+        btn.classList.remove('btn-light');
+        btn.classList.add('btn-danger', 'active');
+        icon.classList.remove('bi-heart', 'text-danger');
+        icon.classList.add('bi-heart-fill', 'text-white');
+        btn.title = 'Bỏ yêu thích';
+    } else {
+        btn.classList.remove('btn-danger', 'active');
+        btn.classList.add('btn-light');
+        icon.classList.remove('bi-heart-fill', 'text-white');
+        icon.classList.add('bi-heart', 'text-danger');
+        btn.title = 'Thêm vào yêu thích';
+    }
+}
 
 // Tag filter toggle
 function toggleTag(element) {

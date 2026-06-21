@@ -63,7 +63,7 @@
                         <div class="card notification-card mb-3 {{ !$notification->is_read ? 'unread' : '' }}" data-id="{{ $notification->id }}">
                             <div class="card-body p-3">
                                 <div class="d-flex">
-                                    <div class="notification-icon bg-{{ $notification->type === 'points_recharged' ? 'warning' : ($notification->type === 'book_approved' ? 'success' : 'primary') }} text-white me-3">
+                                    <div class="notification-icon bg-{{ $notification->type === 'points_recharged' ? 'warning' : ($notification->type === 'book_approved' ? 'success' : ($notification->type === 'book_rejected' ? 'danger' : 'primary')) }} text-white me-3">
                                         <i class="bi {{ $notification->icon ?? 'bi-bell' }}"></i>
                                     </div>
                                     <div class="flex-grow-1">
@@ -72,6 +72,63 @@
                                                 <h6 class="mb-1">{{ $notification->title }}</h6>
                                                 <p class="text-muted small mb-1">{{ $notification->content ?? '' }}</p>
                                                 <small class="text-muted"><i class="bi bi-clock me-1"></i>{{ $notification->created_at->diffForHumans() }}</small>
+
+                                                {{-- Hiển thị thông tin sách khi có data --}}
+                                                @if($notification->data && isset($notification->data['book']))
+                                                <div class="book-notification-card mt-3 p-3 bg-light rounded border">
+                                                    <div class="d-flex align-items-center">
+                                                        @if(isset($notification->data['book']['thumbnail']) && $notification->data['book']['thumbnail'])
+                                                            <img src="{{ asset('storage/' . $notification->data['book']['thumbnail']) }}"
+                                                                 alt="{{ $notification->data['book']['title'] ?? 'Sách' }}"
+                                                                 class="rounded me-3 shadow-sm"
+                                                                 style="width: 70px; height: 95px; object-fit: cover;">
+                                                        @else
+                                                            <div class="book-placeholder me-3 d-flex align-items-center justify-content-center bg-secondary text-white rounded shadow-sm"
+                                                                 style="width: 70px; height: 95px;">
+                                                                <i class="bi bi-book fs-3"></i>
+                                                            </div>
+                                                        @endif
+                                                        <div class="flex-grow-1">
+                                                            <h6 class="mb-1 text-primary fw-bold">{{ $notification->data['book']['title'] ?? 'Không có tiêu đề' }}</h6>
+                                                            @if(isset($notification->data['book']['authors']) && $notification->data['book']['authors'])
+                                                                <p class="text-muted small mb-1">
+                                                                    <i class="bi bi-person me-1"></i>{{ $notification->data['book']['authors'] }}
+                                                                </p>
+                                                            @endif
+                                                            @if(isset($notification->data['book']['category']) && $notification->data['book']['category'])
+                                                                <p class="text-muted small mb-0">
+                                                                    <i class="bi bi-tag me-1"></i>{{ $notification->data['book']['category'] }}
+                                                                </p>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+                                                    @if(isset($notification->data['book']['status']))
+                                                    <div class="mt-2">
+                                                        @php
+                                                            $statusConfig = [
+                                                                'approved' => ['class' => 'success', 'icon' => 'check-circle', 'text' => 'Đã duyệt'],
+                                                                'rejected' => ['class' => 'danger', 'icon' => 'x-circle', 'text' => 'Bị từ chối'],
+                                                                'pending' => ['class' => 'warning', 'icon' => 'clock', 'text' => 'Đang chờ duyệt'],
+                                                            ];
+                                                            $status = $notification->data['book']['status'];
+                                                            $statusInfo = $statusConfig[$status] ?? ['class' => 'secondary', 'icon' => 'info-circle', 'text' => ucfirst($status)];
+                                                        @endphp
+                                                        <span class="badge bg-{{ $statusInfo['class'] }}">
+                                                            <i class="bi bi-{{ $statusInfo['icon'] }} me-1"></i>{{ $statusInfo['text'] }}
+                                                        </span>
+                                                    </div>
+                                                    @endif
+                                                    {{-- Link xem sách --}}
+                                                    @if(isset($notification->data['book']['id']))
+                                                    <div class="mt-2">
+                                                        <a href="{{ route('books.show', $notification->data['book']['id']) }}"
+                                                           class="btn btn-sm btn-outline-primary">
+                                                            <i class="bi bi-eye me-1"></i>Xem sách
+                                                        </a>
+                                                    </div>
+                                                    @endif
+                                                </div>
+                                                @endif
                                             </div>
                                             <div class="dropdown">
                                                 <button class="btn btn-sm" data-bs-toggle="dropdown">
@@ -81,11 +138,14 @@
                                                     @if($notification->link)
                                                         <li><a class="dropdown-item" href="{{ $notification->link }}"><i class="bi bi-eye me-2"></i>Xem</a></li>
                                                     @endif
+                                                    @if($notification->data && isset($notification->data['book']['id']))
+                                                        <li><a class="dropdown-item" href="{{ route('books.show', $notification->data['book']['id']) }}"><i class="bi bi-book me-2"></i>Xem sách</a></li>
+                                                    @endif
                                                     @if(!$notification->is_read)
-                                                        <li><a class="dropdown-item" href="#" onclick="markAsRead({{ $notification->id }})"><i class="bi bi-check2 me-2"></i>Đánh dấu đã đọc</a></li>
+                                                        <li><a class="dropdown-item" href="#" onclick="markAsRead({{ $notification->id }}); return false;"><i class="bi bi-check2 me-2"></i>Đánh dấu đã đọc</a></li>
                                                     @endif
                                                     <li><hr class="dropdown-divider"></li>
-                                                    <li><a class="dropdown-item text-danger" href="#" onclick="deleteNotification({{ $notification->id }})"><i class="bi bi-trash me-2"></i>Xóa</a></li>
+                                                    <li><a class="dropdown-item text-danger" href="#" onclick="deleteNotification({{ $notification->id }}); return false;"><i class="bi bi-trash me-2"></i>Xóa</a></li>
                                                 </ul>
                                             </div>
                                         </div>
@@ -113,7 +173,7 @@
                     <div class="card border-0 shadow-sm mb-4">
                         <div class="card-body">
                             <div class="d-flex align-items-center mb-3">
-                                <img src="{{ Auth::user()->avatar ? asset('storage/' . Auth::user()->avatar) : 'https://via.placeholder.com/60' }}" 
+                                <img src="{{ Auth::user()->avatar ? asset('storage/' . Auth::user()->avatar) : 'https://via.placeholder.com/60' }}"
                                      alt="Avatar" class="rounded-circle me-3" style="width: 60px; height: 60px; object-fit: cover;">
                                 <div>
                                     <h5 class="mb-0">{{ Auth::user()->name }}</h5>

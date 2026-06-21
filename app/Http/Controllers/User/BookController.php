@@ -7,7 +7,9 @@ use App\Models\Book;
 use App\Models\Category;
 use App\Models\Tag;
 use App\Models\Author;
+use App\Models\Favorite;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class BookController extends Controller
 {
@@ -116,11 +118,26 @@ class BookController extends Controller
             ->limit(20)
             ->get();
 
+        $favoriteBookIds = Auth::check()
+            ? Favorite::where('user_id', Auth::id())
+                ->where('status', 'active')
+                ->pluck('book_id')
+                ->all()
+            : [];
+
+        $purchasedBookIds = Auth::check()
+            ? \App\Models\Purchase::where('user_id', Auth::id())
+                ->pluck('book_id')
+                ->all()
+            : [];
+
         return view('user.books', compact(
             'books',
             'categories',
             'tags',
-            'authors'
+            'authors',
+            'favoriteBookIds',
+            'purchasedBookIds'
         ));
     }
 
@@ -161,6 +178,9 @@ class BookController extends Controller
         // Check if user has purchased
         $hasPurchased = auth()->check() && auth()->user()->hasPurchased($book);
 
+        // Check if user is the uploader (can read for free)
+        $isUploader = auth()->check() && $book->user_id === auth()->id();
+
         // Check if user has favorited
         $hasFavorited = auth()->check() && auth()->user()->hasFavorited($book);
 
@@ -192,6 +212,7 @@ class BookController extends Controller
             'book',
             'relatedBooks',
             'hasPurchased',
+            'isUploader',
             'hasFavorited',
             'userRating',
             'comments',

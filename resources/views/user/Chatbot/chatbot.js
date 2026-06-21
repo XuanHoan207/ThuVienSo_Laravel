@@ -7,11 +7,10 @@ const fileCancelButton = document.querySelector("#file-cancel");
 const chatbotToggler = document.querySelector("#chatbot-toggler");
 const closeChatbot = document.querySelector("#close-chatbot");
 
-// API setup
-
-// Api setup
-const API_KEY = "{{ env('GEMINI_API_KEY') }}"; // LINK LẤY API KEY: https://aistudio.google.com/apikey
-const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
+// API setup - Get from global window variables (set in chatbot.blade.php)
+const API_KEY = window.GEMINI_API_KEY || "";
+const API_URL = window.GEMINI_API_URL || "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent";
+const FULL_API_URL = API_KEY ? `${API_URL}?key=${API_KEY}` : "";
 
 const userData = {
   message: null,
@@ -35,6 +34,15 @@ const createMessageElement = (content, ...classes) => {
 const generateBotResponse = async (incomingMessageDiv) => {
   const messageElement = incomingMessageDiv.querySelector(".message-text");
 
+  // Check if API key is configured
+  if (!API_KEY) {
+    messageElement.innerText = "Lỗi: API Key chưa được cấu hình. Vui lòng liên hệ quản trị viên.";
+    messageElement.style.color = "#ff0000";
+    incomingMessageDiv.classList.remove("thinking");
+    chatBody.scrollTo({ behavior: "smooth", top: chatBody.scrollHeight });
+    return;
+  }
+
   chatHistory.push({
     role: "user",
     parts: [
@@ -44,24 +52,24 @@ const generateBotResponse = async (incomingMessageDiv) => {
   });
 
   try {
-    const response = await fetch(API_URL, {
+    const response = await fetch(FULL_API_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        contents: [
-          {
-            parts: chatHistory.map((item) => ({
-              text: item.parts[0].text,
-            })),
-          },
-        ],
+        contents: chatHistory.map((item) => ({
+          role: item.role,
+          parts: item.parts,
+        })),
       }),
     });
 
     const data = await response.json();
-    if (!response.ok) throw new Error(data.error?.message || "Lỗi không xác định");
+    if (!response.ok) {
+      const errorMsg = data.error?.message || `Lỗi HTTP: ${response.status}`;
+      throw new Error(errorMsg);
+    }
 
     const apiResponseText = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "Xin lỗi, tôi không thể trả lời lúc này.";
     messageElement.innerText = apiResponseText;
@@ -73,7 +81,7 @@ const generateBotResponse = async (incomingMessageDiv) => {
     messageElement.innerText = "Lỗi: " + error.message;
     messageElement.style.color = "#ff0000";
   } finally {
-    userData.file = {};
+    userData.file = { data: null, mime_type: null };
     incomingMessageDiv.classList.remove("thinking");
     chatBody.scrollTo({ behavior: "smooth", top: chatBody.scrollHeight });
   }

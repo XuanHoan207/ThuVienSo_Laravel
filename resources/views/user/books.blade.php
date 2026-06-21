@@ -179,10 +179,14 @@
                                                 <img src="https://via.placeholder.com/300x200?text=No+Cover" class="card-img-top" alt="No Cover" style="height: 200px; object-fit: cover;">
                                             @endif
                                         </a>
-                                        <button class="btn btn-sm btn-danger position-absolute top-0 end-0 m-2 rounded-circle wishlist-btn" 
-                                                onclick="toggleWishlist({{ $book->id }}, this)" 
-                                                title="Thêm vào yêu thích">
-                                            <i class="bi bi-heart"></i>
+                                        @php $isFavorited = in_array($book->id, $favoriteBookIds ?? []); @endphp
+                                        <button type="button"
+                                                class="btn btn-sm rounded-circle wishlist-btn position-absolute top-0 end-0 m-2 {{ $isFavorited ? 'btn-danger active' : 'btn-light' }}"
+                                                data-book-id="{{ $book->id }}"
+                                                data-auth="{{ auth()->check() ? '1' : '0' }}"
+                                                data-login-url="{{ route('login') }}"
+                                                title="{{ $isFavorited ? 'Bỏ yêu thích' : 'Thêm vào yêu thích' }}">
+                                            <i class="bi {{ $isFavorited ? 'bi-heart-fill text-white' : 'bi-heart text-danger' }}"></i>
                                         </button>
                                         @if($book->category)
                                             <span class="badge bg-primary position-absolute bottom-0 start-0 m-2">{{ $book->category->name }}</span>
@@ -218,7 +222,11 @@
                                         </div>
                                         <div class="d-flex justify-content-between align-items-center">
                                             <span class="text-orange fw-bold fs-5">{{ number_format($book->price_points) }} điểm</span>
-                                            <button class="btn btn-sm btn-primary" onclick="addToCart({{ $book->id }})"><i class="bi bi-cart-plus"></i></button>
+                                            @if(!in_array($book->id, $purchasedBookIds ?? []))
+                                                <button type="button" class="btn btn-sm btn-primary" onclick="addToCart({{ $book->id }})"><i class="bi bi-cart-plus"></i></button>
+                                            @else
+                                                <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Đã mua</span>
+                                            @endif
                                         </div>
                                     </div>
                                 </div>
@@ -259,55 +267,35 @@
 @push('scripts')
 <script>
 function addToCart(bookId) {
-    fetch('/cart/add', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-        },
-        body: JSON.stringify({ book_id: bookId })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert(data.message);
-            location.reload();
-        } else {
-            alert(data.error || 'Có lỗi xảy ra!');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Có lỗi xảy ra!');
-    });
-}
+    const formData = new FormData();
+    formData.append('book_id', bookId);
 
-function toggleWishlist(bookId, btn) {
-    fetch('/wishlist/toggle', {
+    fetch('{{ route('cart.add') }}', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
         },
-        body: JSON.stringify({ book_id: bookId })
+        body: formData
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            if (data.is_favorited) {
-                btn.classList.add('bg-danger', 'text-white');
-            } else {
-                btn.classList.remove('bg-danger', 'text-white');
+            const cartBadge = document.getElementById('cartBadge');
+            if (cartBadge && data.cartCount !== undefined) {
+                cartBadge.textContent = data.cartCount;
+                cartBadge.style.display = data.cartCount > 0 ? 'block' : 'none';
             }
-            alert(data.message);
-        } else {
-            alert(data.error || 'Vui lòng đăng nhập!');
+            const cartToast = document.getElementById('cartToast');
+            const toastMessage = document.getElementById('cartToastMessage');
+            if (cartToast && toastMessage) {
+                toastMessage.textContent = data.message || 'Đã thêm vào giỏ hàng!';
+                bootstrap.Toast.getOrCreateInstance(cartToast).show();
+            }
         }
     })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Có lỗi xảy ra!');
-    });
+    .catch(() => {});
 }
 </script>
 @endpush

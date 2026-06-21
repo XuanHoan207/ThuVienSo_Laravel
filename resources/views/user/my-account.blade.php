@@ -137,6 +137,10 @@
                             <i class="bi bi-shield-lock"></i>
                             <span>Bảo mật</span>
                         </a>
+                        <a href="#history" class="nav-item" data-bs-toggle="tab">
+                            <i class="bi bi-clock-history"></i>
+                            <span>Lịch sử</span>
+                        </a>
                     </nav>
                 </div>
             </div>
@@ -453,6 +457,67 @@
                                         <i class="bi bi-book fs-1 d-block mb-3"></i>
                                         <p>Chưa có sách nào được đăng tải</p>
                                         <a href="{{ route('user.books.upload') }}" class="btn btn-primary">Đăng sách mới</a>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- History Tab -->
+                    <div class="tab-pane fade" id="history">
+                        <h4 class="fw-bold mb-4"><i class="bi bi-clock-history me-2 text-orange"></i>Lịch sử đọc</h4>
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body">
+                                @if(isset($history) && $history->count() > 0)
+                                    <div class="table-responsive">
+                                        <table class="table table-hover align-middle">
+                                            <thead>
+                                                <tr>
+                                                    <th>Sách</th>
+                                                    <th>Ngày đọc</th>
+                                                    <th>Tiến độ</th>
+                                                    <th>Thao tác</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach($history as $item)
+                                                    <tr>
+                                                        <td>
+                                                            <div class="d-flex align-items-center gap-3">
+                                                                <img src="{{ $item->book->thumbnail ? asset('storage/' . $item->book->thumbnail) : 'https://via.placeholder.com/60x80' }}"
+                                                                     alt="" style="width: 50px; height: 65px; object-fit: cover;" class="rounded">
+                                                                <div>
+                                                                    <h6 class="mb-0">{{ Str::limit($item->book->title, 35) }}</h6>
+                                                                    <small class="text-muted">{{ $item->book->authors->pluck('name')->first() ?? 'Unknown' }}</small>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <small class="text-muted">{{ $item->last_read_at ? \Carbon\Carbon::parse($item->last_read_at)->format('d/m/Y H:i') : '-' }}</small>
+                                                        </td>
+                                                        <td>
+                                                            <div class="d-flex align-items-center gap-2">
+                                                                <div class="progress flex-grow-1" style="height: 8px; min-width: 100px;">
+                                                                    <div class="progress-bar bg-orange" role="progressbar" style="width: {{ $item->max_pages_read && $item->book->pages ? round($item->max_pages_read / $item->book->pages * 100) : 0 }}%"></div>
+                                                                </div>
+                                                                <small class="text-muted">{{ $item->max_pages_read && $item->book->pages ? round($item->max_pages_read / $item->book->pages * 100) : 0 }}%</small>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <a href="{{ route('books.show', $item->book->slug) }}" class="btn btn-sm btn-outline-primary">
+                                                                <i class="bi bi-book-open"></i> Đọc tiếp
+                                                            </a>
+                                                        </td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                @else
+                                    <div class="text-center text-muted py-5">
+                                        <i class="bi bi-clock-history fs-1 d-block mb-3"></i>
+                                        <p>Chưa có lịch sử đọc sách</p>
+                                        <a href="{{ route('books.index') }}" class="btn btn-primary">Khám phá sách</a>
                                     </div>
                                 @endif
                             </div>

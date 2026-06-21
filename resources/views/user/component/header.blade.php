@@ -133,18 +133,18 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            // Update cart badge
-                            const currentCount = parseInt(cartBadge.textContent) || 0;
-                            const newCount = currentCount + 1;
-                            cartBadge.textContent = newCount;
-                            cartBadge.style.display = 'block';
+                            const count = data.cartCount ?? ((parseInt(cartBadge.textContent) || 0) + 1);
+                            cartBadge.textContent = count;
+                            cartBadge.style.display = count > 0 ? 'block' : 'none';
+                        }
 
-                            // Show toast
-                            toastMessage.textContent = data.message || 'Đã thêm vào giỏ hàng!';
+                        if (data.message) {
+                            toastMessage.textContent = data.message;
                             const toast = new bootstrap.Toast(cartToast);
                             toast.show();
                         }
-                    });
+                    })
+                    .catch(() => {});
                 });
             }
         });

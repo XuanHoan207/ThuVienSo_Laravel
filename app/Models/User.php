@@ -110,6 +110,11 @@ class User extends Authenticatable
         return $this->hasMany(ContactMessage::class);
     }
 
+    public function readingHistory(): HasMany
+    {
+        return $this->hasMany(BookReadProgress::class)->orderBy('last_read_at', 'desc');
+    }
+
     public function reports(): HasMany
     {
         return $this->hasMany(Report::class, 'user_id');

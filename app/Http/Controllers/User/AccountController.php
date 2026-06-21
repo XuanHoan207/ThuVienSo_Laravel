@@ -54,6 +54,12 @@ class AccountController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(12);
 
+        // Reading history
+        $history = \App\Models\BookReadProgress::with('book.authors')
+            ->where('user_id', $user->id)
+            ->orderBy('last_read_at', 'desc')
+            ->paginate(12);
+
         // Recent activity
         $recentActivity = collect();
 
@@ -92,7 +98,7 @@ class AccountController extends Controller
 
         $recentActivity = $recentActivity->sortByDesc('created_at')->take(5);
 
-        return view('user.my-account', compact('stats', 'recentActivity', 'purchases', 'downloads', 'favorites', 'myBooks'));
+        return view('user.my-account', compact('stats', 'recentActivity', 'purchases', 'downloads', 'favorites', 'myBooks', 'history'));
     }
 
     public function updateProfile(Request $request)

@@ -15,11 +15,6 @@
         .wishlist-btn:hover { transform: scale(1.05); }
         .wishlist-btn.active { background-color: #dc3545; color: white; border-color: #dc3545; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
-        .preview-modal .modal-content { border-radius: 20px; overflow: hidden; }
-        .preview-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
-        .voice-controls { border-left: 2px solid rgba(255,255,255,0.2); padding-left: 15px; }
-        .reading-progress { height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; }
-        .reading-progress-bar { background: #ED553B; transition: width 0.3s ease; }
     </style>
 @endpush
 
@@ -135,7 +130,7 @@
                                 </div>
                                 <div class="col-auto">
                                     @auth
-                                        @if($hasPurchased)
+                                        @if($hasPurchased || (isset($isUploader) && $isUploader))
                                             <div class="d-flex gap-2">
                                                 <button type="button" class="btn btn-orange rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#readOnlineModal" style="background-color: #ff7043; border-color: #ff7043; color: white;">
                                                     <i class="bi bi-book-half me-2"></i>Đọc ngay
@@ -399,36 +394,21 @@
     <!-- Reader Modal -->
     <div class="modal fade" id="readOnlineModal" tabindex="-1">
         <div class="modal-dialog modal-fullscreen">
-            <div class="modal-content">
-                <div class="modal-header bg-dark text-white border-0 py-2 d-flex align-items-center justify-content-between">
-                    <div class="d-flex align-items-center">
-                        <h6 class="modal-title mb-0 me-3">{{ $book->title }} - {{ $hasPurchased ? 'Bản đầy đủ' : 'Xem thử (5 trang)' }}</h6>
-                        <div class="voice-controls d-flex flex-column gap-1 border-start ps-3 ms-1">
-                            <div class="d-flex align-items-center gap-2">
-                                <button id="btn-read-aloud" class="btn btn-sm btn-orange rounded-pill px-3 py-1 d-flex align-items-center gap-2 shadow-sm" style="background-color: #ED553B; border: none; color: white;">
-                                    <i class="bi bi-volume-up-fill"></i>
-                                    <span id="read-aloud-text" class="small fw-bold">Nghe sách AI</span>
-                                </button>
-                                <div id="voice-settings" class="d-none animate__animated animate__fadeIn d-flex align-items-center gap-2 bg-dark-subtle rounded-pill px-2 py-1">
-                                    <select id="voice-select" class="form-select form-select-sm bg-transparent text-white border-0 py-0 shadow-none" style="width: 120px; font-size: 0.7rem;"></select>
-                                    <input type="range" id="voice-rate" min="0.5" max="2" value="1" step="0.1" class="form-range" style="width: 50px; height: 10px;" title="Tốc độ">
-                                </div>
-                            </div>
-                            <div id="reading-progress-container" class="d-none" style="width: 200px;">
-                                <div class="reading-progress">
-                                    <div id="reading-progress-bar" class="reading-progress-bar" role="progressbar" style="width: 0%;"></div>
-                                </div>
-                                <div class="d-flex justify-content-between" style="font-size: 0.6rem;">
-                                    <span id="reading-status" class="text-white-50">Đang chuẩn bị...</span>
-                                    <span id="reading-percent" class="text-white-50">0%</span>
-                                </div>
-                            </div>
-                        </div>
+            <div class="modal-content" style="background: #1a1a2e;">
+                <div class="modal-header border-0 py-2" style="background: #16213e;">
+                    <h6 class="modal-title text-white mb-0">
+                        <i class="bi bi-book me-2"></i>{{ $book->title }}
+                        @if(!$hasPurchased && !(isset($isUploader) && $isUploader))
+                            <span class="badge bg-warning text-dark ms-2">XEM THỬ</span>
+                        @endif
+                    </h6>
+                    <div>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                     </div>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body p-0 bg-secondary">
-                    <iframe id="previewIframe" src="{{ route('books.preview', $book->id) }}?t={{ $hasPurchased ? 'full' : 'preview' }}" width="100%" height="100%" style="border: none;"></iframe>
+                <div class="modal-body p-0" style="height: calc(100vh - 60px);">
+                    <iframe id="previewIframe" src="{{ route('books.preview', $book->slug) }}?t={{ ($hasPurchased || (isset($isUploader) && $isUploader)) ? 'full' : 'preview' }}&page=1"
+                            width="100%" height="100%" style="border: none; display: block;"></iframe>
                 </div>
             </div>
         </div>
@@ -641,33 +621,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Purchase Form
-    const purchaseForm = document.getElementById('purchaseForm');
-    if (purchaseForm) {
-        purchaseForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-            
-            fetch('/cart/add', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
-                body: JSON.stringify({ book_id: {{ $book->id }} })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert(data.message);
-                    window.location.href = '{{ route('cart') }}';
-                } else {
-                    alert(data.error || 'Có lỗi xảy ra!');
-                }
-            });
-        });
-    }
-
     // Report Form
     document.getElementById('reportForm')?.addEventListener('submit', function(e) {
         e.preventDefault();
@@ -691,126 +644,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Text-to-Speech (Read Aloud)
-    const btnReadAloud = document.getElementById('btn-read-aloud');
-    const readAloudText = document.getElementById('read-aloud-text');
-    const voiceSettings = document.getElementById('voice-settings');
-    const voiceSelect = document.getElementById('voice-select');
-    const voiceRate = document.getElementById('voice-rate');
-    const progressContainer = document.getElementById('reading-progress-container');
-    const progressBar = document.getElementById('reading-progress-bar');
-    const readingStatus = document.getElementById('reading-status');
-    const readingPercent = document.getElementById('reading-percent');
-    
-    const synth = window.speechSynthesis;
-    let utterance = null;
-    let voices = [];
-
-    function loadVoices() {
-        voices = synth.getVoices();
-        if (voices.length === 0) return;
-
-        const viVoices = voices.filter(v => v.lang.includes('vi'));
-        const enVoices = voices.filter(v => v.lang.includes('en'));
-        const targetVoices = viVoices.length > 0 ? viVoices : enVoices;
-
-        voiceSelect.innerHTML = voices
-            .filter(v => v.lang.includes('vi') || v.lang.includes('en'))
-            .map(v => `<option value="${v.name}" ${(v.name.includes('Google') || v.name.includes('Natural')) && v.lang.includes('vi') ? 'selected' : ''}>${v.name}</option>`)
-            .join('');
-    }
-
-    loadVoices();
-    if (synth.onvoiceschanged !== undefined) {
-        synth.onvoiceschanged = loadVoices;
-    }
-    setTimeout(loadVoices, 500);
-    setTimeout(loadVoices, 1000);
-
-    function updateProgress(percent, status) {
-        if (progressBar) progressBar.style.width = percent + '%';
-        if (readingPercent) readingPercent.innerText = Math.round(percent) + '%';
-        if (status && readingStatus) readingStatus.innerText = status;
-    }
-
-    if (btnReadAloud) {
-        btnReadAloud.addEventListener('click', async function() {
-            if (synth.speaking) {
-                if (synth.paused) {
-                    synth.resume();
-                    readAloudText.innerText = 'Đang phát';
-                } else {
-                    synth.pause();
-                    readAloudText.innerText = 'Tiếp tục';
-                }
-                return;
-            }
-
-            synth.cancel();
-
-            progressContainer.classList.remove('d-none');
-            updateProgress(0, 'Đang chuẩn bị...');
-            readAloudText.innerText = 'Đang quét...';
-
-            try {
-                const fallbackText = document.querySelector('.book-description').innerText;
-                
-                utterance = new SpeechSynthesisUtterance(fallbackText);
-                
-                const selectedVoice = voices.find(v => v.name === voiceSelect.value);
-                if (selectedVoice) {
-                    utterance.voice = selectedVoice;
-                    utterance.lang = selectedVoice.lang;
-                } else {
-                    utterance.lang = 'vi-VN';
-                }
-                
-                utterance.rate = parseFloat(voiceRate.value) || 1;
-                utterance.pitch = 1;
-                utterance.volume = 1;
-
-                utterance.onstart = () => {
-                    updateProgress(50, 'Bắt đầu đọc...');
-                    readAloudText.innerText = 'Đang phát';
-                    voiceSettings.classList.remove('d-none');
-                };
-
-                utterance.onboundary = (event) => {
-                    const percent = 50 + (event.charIndex / fallbackText.length * 50);
-                    updateProgress(percent, 'Đang phát âm...');
-                };
-
-                utterance.onend = () => {
-                    updateProgress(100, 'Hoàn thành');
-                    setTimeout(() => {
-                        readAloudText.innerText = 'Nghe sách AI';
-                        progressContainer.classList.add('d-none');
-                        voiceSettings.classList.add('d-none');
-                    }, 1500);
-                };
-
-                utterance.onerror = (e) => {
-                    readAloudText.innerText = 'Lỗi âm thanh';
-                    updateProgress(0, 'Lỗi hệ thống giọng nói');
-                };
-
-                setTimeout(() => {
-                    synth.speak(utterance);
-                }, 100);
-
-            } catch (error) {
-                readAloudText.innerText = 'Lỗi';
-                updateProgress(0, 'Không thể đọc');
-            }
-        });
-    }
-
-    const readModal = document.getElementById('readOnlineModal');
-    if (readModal) {
-        readModal.addEventListener('hidden.bs.modal', () => {
-            synth.cancel();
-        });
-    }
 });
 </script>
 @endpush

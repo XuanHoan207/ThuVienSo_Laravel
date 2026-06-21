@@ -42,4 +42,8 @@ return [
         'return_url' => env('VNPAY_RETURN_URL'),
     ],
 
+    'gemini' => [
+        'api_key' => env('GEMINI_API_KEY'),
+    ],
+
 ];

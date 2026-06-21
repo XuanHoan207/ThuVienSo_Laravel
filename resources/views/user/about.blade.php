@@ -14,7 +14,7 @@
     @include('user.component.header')
 
     <!-- Hero Section -->
-    <section class="hero-section text-white text-center">
+    <section class="hero-section text-white text-center" style="background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.7)), url('https://images.unsplash.com/photo-1507842217343-583bb7270b66?w=1920') center/cover no-repeat; min-height: 500px; display: flex; align-items: center;">
         <div class="container">
             <div class="row justify-content-center">
                 <div class="col-lg-8">
@@ -165,62 +165,6 @@
                             </div>
                             <h5 class="fw-bold mb-3">Hỗ trợ 24/7</h5>
                             <p class="text-muted mb-0">Đội ngũ hỗ trợ luôn sẵn sàng giải đáp mọi thắc mắc của bạn.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Team Section -->
-    <section class="py-5 bg-light">
-        <div class="container">
-            <div class="text-center mb-5">
-                <h2 class="fw-bold mb-2">Đội ngũ của chúng tôi</h2>
-                <p class="text-muted">Những người tận tâm xây dựng Thư Viện Số</p>
-            </div>
-            <div class="row g-4 justify-content-center">
-                <div class="col-lg-3 col-md-6 text-center">
-                    <div class="team-card">
-                        <img src="https://via.placeholder.com/200" alt="Team Member" class="rounded-circle mb-3" width="150" height="150" style="object-fit: cover;">
-                        <h5 class="fw-bold mb-1">Nguyễn Văn A</h5>
-                        <p class="text-muted mb-2">Founder & CEO</p>
-                        <div class="d-flex justify-content-center gap-2">
-                            <a href="#" class="text-muted"><i class="bi bi-linkedin"></i></a>
-                            <a href="#" class="text-muted"><i class="bi bi-envelope"></i></a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6 text-center">
-                    <div class="team-card">
-                        <img src="https://via.placeholder.com/200" alt="Team Member" class="rounded-circle mb-3" width="150" height="150" style="object-fit: cover;">
-                        <h5 class="fw-bold mb-1">Trần Thị B</h5>
-                        <p class="text-muted mb-2">CTO</p>
-                        <div class="d-flex justify-content-center gap-2">
-                            <a href="#" class="text-muted"><i class="bi bi-linkedin"></i></a>
-                            <a href="#" class="text-muted"><i class="bi bi-envelope"></i></a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6 text-center">
-                    <div class="team-card">
-                        <img src="https://via.placeholder.com/200" alt="Team Member" class="rounded-circle mb-3" width="150" height="150" style="object-fit: cover;">
-                        <h5 class="fw-bold mb-1">Lê Văn C</h5>
-                        <p class="text-muted mb-2">Product Manager</p>
-                        <div class="d-flex justify-content-center gap-2">
-                            <a href="#" class="text-muted"><i class="bi bi-linkedin"></i></a>
-                            <a href="#" class="text-muted"><i class="bi bi-envelope"></i></a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6 text-center">
-                    <div class="team-card">
-                        <img src="https://via.placeholder.com/200" alt="Team Member" class="rounded-circle mb-3" width="150" height="150" style="object-fit: cover;">
-                        <h5 class="fw-bold mb-1">Phạm Thị D</h5>
-                        <p class="text-muted mb-2">Head of Content</p>
-                        <div class="d-flex justify-content-center gap-2">
-                            <a href="#" class="text-muted"><i class="bi bi-linkedin"></i></a>
-                            <a href="#" class="text-muted"><i class="bi bi-envelope"></i></a>
                         </div>
                     </div>
                 </div>

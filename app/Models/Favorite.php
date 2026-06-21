@@ -11,6 +11,8 @@ class Favorite extends Model
 {
     use HasFactory;
 
+    public const UPDATED_AT = null;
+
     protected $table = 'favorites';
 
     protected $fillable = [

@@ -211,20 +211,26 @@ class BookController extends Controller
 
     public function approve($id)
     {
-        $book = Book::findOrFail($id);
+        $book = Book::with(['category', 'authors'])->findOrFail($id);
         $book->update(['status' => 'approved']);
 
         // Notify user
         if ($book->user_id) {
-            Notification::create([
-                'user_id' => $book->user_id,
-                'type' => 'book_approved',
-                'title' => 'Sách được duyệt',
-                'content' => 'Sách "' . $book->title . '" đã được duyệt và hiển thị trên website.',
-                'link' => route('books.show', $book->slug),
-                'icon' => 'bi-check-circle',
-                'icon_color' => 'success',
-            ]);
+            Notification::createBookNotification(
+                $book->user_id,
+                'book_approved',
+                'Sách được duyệt',
+                'Sách "' . $book->title . '" đã được duyệt và hiển thị trên website.',
+                [
+                    'id' => $book->id,
+                    'title' => $book->title,
+                    'thumbnail' => $book->thumbnail,
+                    'authors' => $book->authors->pluck('name')->join(', '),
+                    'category' => $book->category->name ?? null,
+                    'status' => 'approved',
+                ],
+                route('books.show', $book->slug)
+            );
         }
 
         return redirect()->back()->with('success', 'Sách đã được duyệt!');
@@ -232,20 +238,26 @@ class BookController extends Controller
 
     public function reject($id)
     {
-        $book = Book::findOrFail($id);
+        $book = Book::with(['category', 'authors'])->findOrFail($id);
         $book->update(['status' => 'rejected']);
 
         // Notify user
         if ($book->user_id) {
-            Notification::create([
-                'user_id' => $book->user_id,
-                'type' => 'book_rejected',
-                'title' => 'Sách bị từ chối',
-                'content' => 'Sách "' . $book->title . '" không được duyệt. Vui lòng kiểm tra lại.',
-                'link' => route('books.show', $book->slug),
-                'icon' => 'bi-x-circle',
-                'icon_color' => 'danger',
-            ]);
+            Notification::createBookNotification(
+                $book->user_id,
+                'book_rejected',
+                'Sách bị từ chối',
+                'Sách "' . $book->title . '" không được duyệt. Vui lòng kiểm tra lại.',
+                [
+                    'id' => $book->id,
+                    'title' => $book->title,
+                    'thumbnail' => $book->thumbnail,
+                    'authors' => $book->authors->pluck('name')->join(', '),
+                    'category' => $book->category->name ?? null,
+                    'status' => 'rejected',
+                ],
+                route('books.show', $book->slug)
+            );
         }
 
         return redirect()->back()->with('error', 'Sách đã bị từ chối!');
